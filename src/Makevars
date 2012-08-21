@@ -1,0 +1,4 @@
+CFLAGS= -Wall -pedantic
+CXXFLAGS= -Wall -pedantic
+PKG_LIBS= -lz -lbz2 -lm -lpcre -lpcreposix
+
