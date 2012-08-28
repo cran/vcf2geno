@@ -15,10 +15,10 @@ public:
   int writeFile(const char* f);
   std::vector<double>& operator[] (int i) {
     return mat[i];
-  }
+  };
   const std::vector<double>& operator[] (int i) const {
     return mat[i];
-  }
+  };
   void resize(int nrow, int ncol) {
     mat.resize(nrow);
     for (int i = 0; i < nrow; i++)
@@ -46,14 +46,14 @@ public:
       mat[i].push_back(d[i]);
     }
     return 0;
-  }
+  };
   void clear() {
     for (unsigned int i = 0; i < mat.size(); i++){
       for (unsigned int j = 0; j < mat[i].size(); j++){
         mat[i][j] = 0.0;
       }
     }
-  }
+  };
   int nrow() const {
     return mat.size();
   };

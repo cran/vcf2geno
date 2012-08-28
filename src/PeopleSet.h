@@ -18,11 +18,11 @@ public:
     bool contain(const char* name) const {
         std::string s = name;
         return this->contain(s);
-    };
+    }
     bool contain(const std::string& name) const {
         return this->people.find(name) != this->people.end();
-    };
-    unsigned int size() const {return this->people.size();};
+    }
+    unsigned int size() const {return this->people.size();}
 private:
     std::set <std::string> people;
 };

@@ -1,8 +1,6 @@
 #include "PlinkInputFile.h"
 #include "SimpleMatrix.h"
 
-#define UNUSED(x) ((void)(x))
-
 // @param m: people by marker matrix
 int PlinkInputFile::readIntoMatrix(SimpleMatrix* mat) {
     ////assert(mat);
@@ -21,8 +19,8 @@ int PlinkInputFile::readIntoMatrix(SimpleMatrix* mat) {
                 int offset = p & (4 - 1);
                 if (offset == 0) {
                     int ret = fread(&c, sizeof(unsigned char), 1, fpBed);
-                    UNUSED(ret);
                     // assert (ret == 1);
+                    UNUSED(ret);
                 }
                 unsigned char geno = (c  >> (offset << 1)) & mask;
                 switch (geno){
@@ -56,8 +54,8 @@ int PlinkInputFile::readIntoMatrix(SimpleMatrix* mat) {
                 int offset = m & (4 - 1);
                 if (offset == 0) {
                     int ret = fread(&c, sizeof(unsigned char), 1, fpBed);
-                    UNUSED(ret);
                     ////assert( ret == 1);
+                    UNUSED(ret);
                 }
                 unsigned char geno = (c & mask[offset]) >> (offset << 1);
                 switch (geno){
@@ -76,7 +74,7 @@ int PlinkInputFile::readIntoMatrix(SimpleMatrix* mat) {
                     default:
                         REPORT("Read PLINK genotype error!\n");
                         break;
-                };
+                }
             }
         }
     }
@@ -134,7 +132,8 @@ int PlinkInputFile::readIntoMatrix(SimpleMatrix* mat, std::vector<std::string>* 
                 int offset = peopleIdx[p] % 4;
                 unsigned char c;
                 fseek(this->fpBed, pos, SEEK_SET);
-                fread(&c, sizeof(unsigned char), 1, fpBed);
+                int ret = fread(&c, sizeof(unsigned char), 1, fpBed);
+                UNUSED(ret);
                 unsigned char geno = (c & mask[offset]) >> (offset << 1);
                 switch (geno){
                     case HOM_REF:
@@ -163,8 +162,9 @@ int PlinkInputFile::readIntoMatrix(SimpleMatrix* mat, std::vector<std::string>* 
                 int offset = markerIdx[m] % 4;
                 unsigned char c;
                 fseek(this->fpBed, pos, SEEK_SET);
-                fread(&c, sizeof(unsigned char), 1, fpBed);
-
+                int ret = fread(&c, sizeof(unsigned char), 1, fpBed);
+                UNUSED(ret);
+                
                 unsigned char geno = (c & mask[offset]) >> (offset << 1);
                 switch (geno){
                     case HOM_REF:

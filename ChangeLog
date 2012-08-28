@@ -1,0 +1,17 @@
+2012-08-28  Xiaowei Zhan  <zhanxw@gmail.com>
+
+	* Add tests data under inst/vcf
+	* Add test scripts under tests/
+	* Enable PCRE for Linux and provide our own simple Regex class for Mac and Windows
+
+2012-08-27  Xiaowei Zhan  <zhanxw@gmail.com>
+
+	* Update description of license
+	* Remove Makevars
+
+2012-08-26  Xiaowei Zhan  <zhanxw@gmail.com>
+
+	* Update licenses
+	* Support Windows and Mac
+
+

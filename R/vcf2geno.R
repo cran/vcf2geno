@@ -1,6 +1,6 @@
 #' Read a gene from VCF file and return a genotypes matrix
 #'
-#' @param fileName input VCF file
+#' @param fileName input VCF file (Bgzipped, with Tabix index)
 #' @param geneFile a text file listing all genes in refFlat format
 #' @param geneName which gene(s) to be extracted
 #' @param annoType which annotation you would like to extract
@@ -15,7 +15,7 @@ readVCFToMatrixByGene <- function(fileName, geneFile, geneName, annoType) {
 
 #' Read a gene from VCF file and return a genotypes matrix
 #'
-#' @param fileName input VCF file
+#' @param fileName input VCF file (Bgzipped, with Tabix index)
 #' @param range a text indicating which range in the VCF file to extract. e.g. 1:100-200
 #' @param annoType which annotation you would like to extract
 #' @return genotype matrix
@@ -28,7 +28,7 @@ readVCFToMatrixByRange <- function(fileName, range, annoType) {
 
 #' Read a gene from VCF file and return a genotypes matrix
 #'
-#' @param fileName input VCF file
+#' @param fileName input VCF file (Bgzipped, with Tabix index)
 #' @param geneFile a text file listing all genes in refFlat format
 #' @param geneName which gene(s) to be extracted
 #' @param annoType which annotation you would like to extract
@@ -49,7 +49,7 @@ readVCFToListByGene <- function(fileName, geneFile, geneName, annoType, vcfColum
 
 #' Read a gene from VCF file and return a genotypes matrix
 #'
-#' @param fileName input VCF file
+#' @param fileName input VCF file (Bgzipped, with Tabix index)
 #' @param range a text indicating which range in the VCF file to extract. e.g. 1:100-200
 #' @param annoType which annotation you would like to extract
 #' @param vcfColumn which vcf columns to extract, e.g. CHROM, POS, FILTER...

@@ -1,6 +1,11 @@
 #ifndef _R_CPP_INTERFACE_H_
 #define _R_CPP_INTERFACE_H_
 
+#include <string>
+#include <vector>
+
+#include "R.h"
+
 void extractString(SEXP in, std::string* out) {
   *out = CHAR(STRING_ELT(in,0));
 }

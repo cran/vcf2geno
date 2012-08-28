@@ -36,15 +36,18 @@ VCFExtractor(const char* fn): VCFInputFile(fn){
       }
     }
 
+/*     Rprintf("check anno begin\n"); */
     // check annotation
     if (requiredAnnotation()) {
       const VCFValue& v = r.getInfoTag("ANNO", &missing);
       if (missing)
         return false;
+/*       Rprintf("matchAnnotation()..\n"); */
       if (!matchAnnotatoin(v.toStr())){
         return false;
       }
     }
+/*     Rprintf("check anno end\n"); */
 
     // shall we loop each individuals?
     if (  (checkSiteDepth() && !useSiteDepthFromInfo()) ||

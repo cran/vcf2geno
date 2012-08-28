@@ -1,3 +1,4 @@
+#include <iostream> // have to include this to avoid R screw up "length" in iostream/sstream...
 #include <R.h>
 #include <Rinternals.h>
 

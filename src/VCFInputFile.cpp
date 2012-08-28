@@ -24,7 +24,6 @@ void VCFInputFile::setRangeMode() {
   this->rangeIterator = this->range.begin();
   
 }
-
 void VCFInputFile::clearRange() {
 #ifndef NDEBUG
   if (this->range.size()) {

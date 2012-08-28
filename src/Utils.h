@@ -77,7 +77,7 @@ inline int stringTokenize(const std::string& str, const std::string& delim, std:
       s.push_back(str[i]);
     }
     ++i;
-  };
+  }
   result->push_back(s);
   return result->size();
 }
@@ -109,7 +109,7 @@ inline int stringNaturalTokenize(const std::string& str, const std::string& deli
       s.push_back(str[i]);
     }
     ++i;
-  };
+  }
   if (s.size() > 0)
     result->push_back(s);
   return result->size();

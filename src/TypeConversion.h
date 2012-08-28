@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <math.h> // for HUGE_VALH, HUGE_VALL
+
 #include <sstream>
 
 // convert double/int/byte to string type

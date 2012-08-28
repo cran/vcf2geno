@@ -57,8 +57,7 @@ class OrderedMap{
     }
     const KEY& keyAt(unsigned int idx) const {
         if (idx >= this->size()) {
-          //log_error("Index out of bound, now quitting...");
-          REprintf("Index out of bound, now quitting...\n");
+            log_error("Index out of bound, now quitting...");
         }
         return this->keyVec[idx];
     }

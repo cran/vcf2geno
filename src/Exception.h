@@ -8,13 +8,11 @@
 
 #include "R.h"
 
-#define CRAN
-#ifndef CRAN
+#if 0
 /**
  * The following is taken from:
  * http://c.learncodethehardway.org/book/learn-c-the-hard-waych21.html#x26-10700021.2
  */
-
 #ifdef NDEBUG
 #define debug(M, ...)
 #else 
@@ -36,9 +34,11 @@
 #define check_mem(A) check((A), "Out of memory.")
  
 #define check_debug(A, M, ...) if(!(A)) { debug(M, ##__VA_ARGS__); errno=0; goto error; } 
+#else
+inline void log_error(const char* s) {
+  REprintf("[ERROR] %s\n", s);
+}
 
-
-// end define CRAN
 #endif
 
 inline void REPORT(const char* x) { 

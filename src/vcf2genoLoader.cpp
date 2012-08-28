@@ -5,10 +5,11 @@
 #include <vector>
 #include <set>
 
-#include "R_CPP_interface.h"
 #include "VCFUtil.h"
-
 #include "tabix.h"
+#include "R_CPP_interface.h"
+
+#include "R.h"
 
 void loadGeneFile(const std::string& geneFile, const std::string& geneName, std::map< std::string, std::string>* geneRangePtr){
   std::map< std::string, std::string>& geneRange = *geneRangePtr;
@@ -124,7 +125,7 @@ SEXP readVCF2Matrix(VCFExtractor* vin) {
  * @param arg_annoType: allow annotation type, can be regular expression. (e.g. Synonymous|Nonsynonymous)
  */
 SEXP impl_readVCFToMatrixByRange(SEXP arg_fileName, SEXP arg_range, SEXP arg_annoType) {
-  // SEXP ans = R_NilValue;
+  SEXP ans = R_NilValue;
 
   std::string FLAG_fileName = CHAR(STRING_ELT(arg_fileName,0));
   std::string FLAG_range = CHAR(STRING_ELT(arg_range,0));
@@ -132,12 +133,14 @@ SEXP impl_readVCFToMatrixByRange(SEXP arg_fileName, SEXP arg_range, SEXP arg_ann
 
   if (FLAG_fileName.size() == 0) {
     error("Please provide VCF file name");
+    return ans;
   }
   if (FLAG_range.size() == 0) {
     error("Please provide a given range, e.g. '1:100-200'");
+    return ans;
   }
 
-  //fprintf(stdout, "range = %s\n", range.c_str());
+  // REprintf("range = %s\n", FLAG_range.c_str());
   VCFExtractor vin(FLAG_fileName.c_str());
   vin.setRangeList(FLAG_range.c_str());
 
@@ -255,7 +258,7 @@ SEXP readVCF2List(VCFInputFile* vin,
   // std::vector<int> gqVec;
 
   std::map<std::string, std::vector<std::string> > indvMap;
-  int nRow; // # of positions that will be outputed
+  int nRow = 0; // # of positions that will be outputed
 
   // print header
   std::vector<std::string>& names = idVec;
@@ -352,8 +355,8 @@ SEXP readVCF2List(VCFInputFile* vin,
     }
     // Rprintf("Done add indv\n");
   }; // end while
-
-  //  REprintf("posVec = %zu, idVec = %zu, genoVec = %zu\n", posVec.size(), idVec.size(), genoVec.size());
+//   Rprintf("indvMap.size() = %zu\n", indvMap.size());
+  // REprintf("posVec = %zu, idVec = %zu, genoVec = %zu\n", posVec.size(), idVec.size(), genoVec.size());
 
   // pass value back to R (see Manual Chapter 5)
   std::vector<std::string> listNames;
@@ -394,7 +397,6 @@ SEXP readVCF2List(VCFInputFile* vin,
     numAllocated += storeResult(format, ret, retListIdx++);
     listNames.push_back("FORMAT");
   }
-
   // pass info values to R
   for ( std::map<std::string, std::vector<std::string> >::iterator it = infoMap.begin();
         it != infoMap.end();
@@ -402,20 +404,25 @@ SEXP readVCF2List(VCFInputFile* vin,
     numAllocated += storeResult(it->first, it->second, ret, retListIdx++);
     listNames.push_back(it->first);
   }
+  // pass indv tags to R
+  // Rprintf("pass idnv tags\n");
   for ( std::map<std::string, std::vector<std::string> >::iterator it = indvMap.begin();
         it != indvMap.end();
         ++it) {
 
+    dump(it->second);
     numAllocated += storeResult(it->first, it->second, ret, retListIdx);
+    // Rprintf("results done\n");
     // NOTE: R internally store values into matrix by column first!
     // thus the matrix is people by marker
     numAllocated += setDim(idVec.size(), nRow, ret, retListIdx);
     retListIdx ++;
     listNames.push_back(it->first);
   }
+  // Rprintf("pass idnv tags done.\n");
 
   // store sample ids
-  //Rprintf("set sample id");
+  // Rprintf("set sample id");
   listNames.push_back("sampleId");
   numAllocated += storeResult(idVec, ret, retListIdx++);
 
@@ -467,7 +474,6 @@ SEXP impl_readVCFToListByRange(SEXP arg_fileName, SEXP arg_range, SEXP arg_annoT
   if (FLAG_annoType.size()) {
     vin.setAnnoType(FLAG_annoType.c_str());
   }
-
   return readVCF2List(&vin, FLAG_vcfColumn, FLAG_infoTag, FLAG_indvTag);
 }
 

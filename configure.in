@@ -1,0 +1,40 @@
+AC_INIT(vcf2geno, 1.1, zhanxw@gmail.com)
+AC_CONFIG_HEADERS(src/config.h)
+: ${R_HOME=`R RHOME`}
+if test -z "${R_HOME}"; then
+   echo "could not determine R_HOME"
+   exit 1
+fi
+CC=`"${R_HOME}/bin/R" CMD config CC`
+CXX=`"${R_HOME}/bin/R" CMD config CXX`
+CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
+CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXXFLAGS`
+
+AC_LANG(C)
+AC_PROG_CC
+AC_LANG(C++)
+AC_PROG_CXX
+
+LIB_BZIP2=""
+AC_CHECK_LIB([bz2], [BZ2_bzDecompressInit], [
+  AC_CHECK_HEADER([bzlib.h], [
+    HAS_BZIP2=1
+    AC_DEFINE([HAS_BZIP2], [1], [Define to 1 if you have bzip2 library])
+    LIB_BZIP2="-lbz2"
+  ]) 
+])
+
+LIB_PCRE=""
+AC_CHECK_LIB([pcre], [regcomp], [
+  AC_CHECK_HEADER([pcreposix.h], [
+    HAS_PCRE=1
+    AC_DEFINE([HAS_PCREPOSIX], [1], [Define to 1 if you have PCRE library])
+    LIB_PCRE="-lpcre -lpcreposix"
+  ])
+])
+
+AC_SUBST(LIB_BZIP2)
+AC_SUBST(LIB_PCRE)
+
+AC_CONFIG_FILES([src/Makevars])
+AC_OUTPUT

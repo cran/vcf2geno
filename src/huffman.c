@@ -12,10 +12,10 @@
    Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the 
-   README file.
+   bzip2.README file.
 
    This program is released under the terms of the license contained
-   in the file LICENSE.
+   in the file bzip2.LICENSE.
    ------------------------------------------------------------------ */
 
 

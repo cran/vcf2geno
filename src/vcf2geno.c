@@ -25,7 +25,7 @@ SEXP out(SEXP x, SEXP y) {
   setAttrib(ans, R_DimNamesSymbol, dimnames);
   UNPROTECT(3);
   return(ans);
-}
+};
 #endif
 
 extern SEXP impl_readVCFToMatrixByGene(SEXP arg_fileName, SEXP arg_geneFile, SEXP arg_geneName, SEXP arg_annoType);

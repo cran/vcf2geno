@@ -10,6 +10,11 @@
 #include <string>
 #include <vector>
 
+// Windows platform does not have good autoconf tools, so skip loading config.h
+#ifndef _WIN32
+#include "config.h"
+#endif
+
 // cannot forward declare an typdef anonymous struct
 // http://stackoverflow.com/questions/804894/forward-declaration-of-a-typedef-in-c
 // so include the header file
@@ -17,11 +22,12 @@
 #include "R.h"
 
 // #define IO_DEBUG
-
 typedef enum FileType {
   PLAIN = 0,
   GZIP = 1,
+#ifdef HAS_BZIP2
   BZIP2 = 2,
+#endif
   BGZIP = 3,
   UNKNOWN = 99
 } FileType;
@@ -40,7 +46,9 @@ public:
   typedef enum FileType {
     PLAIN = 0,
     GZIP = 1,
+#ifdef HAS_BZIP2
     BZIP2 = 2,
+#endif
     UNKNOWN = 99
   } FileType;
   virtual ~AbstractFileReader() {}; // make it virtual so subclass types can close file handle
@@ -155,8 +163,11 @@ GzipFileReader(const char* fileName):
 private:
   gzFile fp;
 };
+
 //////////////////////////////////////////////////////////////////////
 // Bzip2 reading class
+#ifdef HAS_BZIP2
+
 #include <bzlib.h>
 class Bzip2FileReader: public AbstractFileReader{
 public:
@@ -229,6 +240,7 @@ private:
   BZFILE* bzp;
   int bzerror;
 };
+#endif
 //////////////////////////////////////////////////////////////////////
 
 /**
@@ -537,6 +549,7 @@ private:
   gzFile fp;
 }; // end GzipFileWriter
 
+#ifdef HAS_BZIP2
 class Bzip2FileWriter:public AbstractFileWriter{
 public:
   Bzip2FileWriter(const char* fn, bool append = false){
@@ -602,6 +615,7 @@ private:
   BZFILE* bzp;
   int bzerror;
 }; // end Bzip2FileWriter
+#endif
 
 class BGZipFileWriter:public AbstractFileWriter{
 public:
@@ -710,8 +724,10 @@ public:
     // int l = strlen(fileName);
     if (this->checkSuffix(fileName, ".gz")) {
       this->fpRaw = new GzipFileWriter(fileName, append);
+#ifdef HAS_BZIP2
     } else if (this->checkSuffix(fileName, ".bz2")){
       this->fpRaw = new Bzip2FileWriter(fileName, append);
+#endif
     } else {
       this->fpRaw = new TextFileWriter(fileName, append);
     }
@@ -729,8 +745,10 @@ public:
       this->fpRaw = new TextFileWriter(fileName, append);
     } else if (GZIP == t) {
       this->fpRaw = new GzipFileWriter(fileName, append);
+#ifdef HAS_BZIP2
     } else if (BZIP2 == t) {
       this->fpRaw = new Bzip2FileWriter(fileName, append);
+#endif
     } else if (BGZIP == t) {
       this->fpRaw = new BGZipFileWriter(fileName, append);
     } else {

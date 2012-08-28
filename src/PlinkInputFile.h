@@ -7,6 +7,8 @@
 #include "Exception.h"
 #include "IO.h"
 
+#define UNUSED(x) ((void)(x))
+
 class SimpleMatrix;
 
 class PlinkInputFile{
@@ -24,8 +26,8 @@ public:
     char c;
     // magic number
     char magic1 = 0x6c; // 0b01101100;
-    int ret;
-    ret = fread(&c, sizeof(char), 1, this->fpBed);
+    int ret = fread(&c, sizeof(char), 1, this->fpBed);
+    UNUSED(ret);
     //assert(ret == 1);
     if (c != magic1) {
       REprintf("Magic number of binary PLINK file does not match!\n");
@@ -97,12 +99,12 @@ public:
     delete lr;
 
     REprintf("Finished loading %s. %zu chrom, %zu indv\n", fnPrefix, snp2Idx.size(), indv.size());
-  };
+  }
   ~PlinkInputFile() {
     fclose(this->fpBed);
     fclose(this->fpBim);
     fclose(this->fpFam);
-  };
+  }
 
   // @param m: people by marker matrix
   int readIntoMatrix(SimpleMatrix* mat);
@@ -114,14 +116,14 @@ public:
     } else{
       return (this->snp2Idx[m]);
     }
-  };
+  }
 
   int getNumIndv() const {
     return this->indv.size();
-  };
+  }
   int getNumMarker() const {
     return this->snp2Idx.size();
-  };
+  }
 
 public:
   std::vector<std::string> chrom;
