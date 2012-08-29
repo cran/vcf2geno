@@ -1,3 +1,10 @@
+2012-08-29  Xiaowei Zhan  <zhanxw@host10-41.sph.umich.edu>
+
+	* Support Solaris 10 (after removing __restrict keyword, fixing macros)
+	* Support Fedora (include <regex.h> instead of <pcreposix.h>)
+	* Update zlib related codes to comply to zlib license (from personal email with Mark Adler)
+	* License under GPL
+
 2012-08-28  Xiaowei Zhan  <zhanxw@gmail.com>
 
 	* Add tests data under inst/vcf

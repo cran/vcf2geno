@@ -413,7 +413,7 @@ typedef uLong FAR uLongf;
 
 #ifdef HAVE_UNISTD_H    /* may be set to #if 1 by ./configure */
 #  define Z_HAVE_UNISTD_H
-#  include <unistd.h>   /* explicitly include unistd.h -- zhanxw */
+#  include <unistd.h>   /* explicitly include unistd.h to remove warnings of implicit use of lseek: by Xiaowei Zhan <zhanxw@gmail.com> */
 #endif
 
 #ifdef HAVE_STDARG_H    /* may be set to #if 1 by ./configure */

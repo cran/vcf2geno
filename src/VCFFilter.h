@@ -1,7 +1,7 @@
 #ifndef _VCFFILTER_H_
 #define _VCFFILTER_H_
 
-#include "Regex.h"
+#include "PatternMatch.h"
 
 /**
  * Our VCF library support the following filters (in additional to sampler filter and range filter).

@@ -25,7 +25,7 @@
 typedef enum FileType {
   PLAIN = 0,
   GZIP = 1,
-#ifdef HAS_BZIP2
+#ifdef HAVE_BZIP2
   BZIP2 = 2,
 #endif
   BGZIP = 3,
@@ -46,7 +46,7 @@ public:
   typedef enum FileType {
     PLAIN = 0,
     GZIP = 1,
-#ifdef HAS_BZIP2
+#ifdef HAVE_BZIP2
     BZIP2 = 2,
 #endif
     UNKNOWN = 99
@@ -166,7 +166,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////
 // Bzip2 reading class
-#ifdef HAS_BZIP2
+#ifdef HAVE_BZIP2
 
 #include <bzlib.h>
 class Bzip2FileReader: public AbstractFileReader{
@@ -549,7 +549,7 @@ private:
   gzFile fp;
 }; // end GzipFileWriter
 
-#ifdef HAS_BZIP2
+#ifdef HAVE_BZIP2
 class Bzip2FileWriter:public AbstractFileWriter{
 public:
   Bzip2FileWriter(const char* fn, bool append = false){
@@ -724,7 +724,7 @@ public:
     // int l = strlen(fileName);
     if (this->checkSuffix(fileName, ".gz")) {
       this->fpRaw = new GzipFileWriter(fileName, append);
-#ifdef HAS_BZIP2
+#ifdef HAVE_BZIP2
     } else if (this->checkSuffix(fileName, ".bz2")){
       this->fpRaw = new Bzip2FileWriter(fileName, append);
 #endif
@@ -745,7 +745,7 @@ public:
       this->fpRaw = new TextFileWriter(fileName, append);
     } else if (GZIP == t) {
       this->fpRaw = new GzipFileWriter(fileName, append);
-#ifdef HAS_BZIP2
+#ifdef HAVE_BZIP2
     } else if (BZIP2 == t) {
       this->fpRaw = new Bzip2FileWriter(fileName, append);
 #endif

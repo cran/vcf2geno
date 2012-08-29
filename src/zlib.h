@@ -33,15 +33,16 @@
 
 #include "zconf.h"
 
-// try include <unistd.h>
+// try include <unistd.h>: by Xiaowei Zhan <zhanxw@gmail.com>
 #include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define ZLIB_VERSION "1.2.7"
-#define ZLIB_VERNUM 0x1270
+// change ZLIB_VERSION and ZLIB_VERNUM to comply zlib license requirement: by Xiaowei Zhan <zhanxw@gmail.com>
+#define ZLIB_VERSION "1.2.7.f-vcf2geno"
+#define ZLIB_VERNUM 0x127f
 #define ZLIB_VER_MAJOR 1
 #define ZLIB_VER_MINOR 2
 #define ZLIB_VER_REVISION 7

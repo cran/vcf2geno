@@ -1,29 +1,27 @@
-#ifndef _REGEX_H_
-#define _REGEX_H_
+#ifndef _PATTERNMATCH_H_
+#define _PATTERNMATCH_H_
 
 #define ERROR_BUF_LEN 64
 
-#include <string>
+#include "config.h"
 
-// for some strange reason
-// MacOSX gcc 4.2 will messes up pcreposix.h and regex.h
-// You will notice REG_NOMATCH has different definitions.
-// Then the compile program will crash by a consecutive run of regexec()
-#ifdef __APPLE__
-#undef HAS_PCREPOSIX
-#endif
-#ifdef __MACH__
-#undef HAS_PCREPOSIX
+#ifndef HAVE_REG_STARTEND
+// e.g. in Solaris, it doesnot implement REG_STARTEND,
+// we have to skip using regex related functions in lib
+#undef HAVE_POSIX_REGEX
+// #pragma message "undef posix (1)"
 #endif
 
-#ifdef HAS_PCREPOSIX
+#ifdef HAVE_POSIX_REGEX
 // We use PCRE here, use 'man pcreposix' for more information
 // accordig to http://lh3lh3.users.sourceforge.net/reb.shtml
 // PCRE-posix is fast
-//#include <regex.h>
-#include <pcreposix.h>
+// #include <pcreposix.h> --> this header is only for PCRE
+#include <regex.h>
 #include <R.h>
+#include <string>
 
+// #pragma message "undef posix (2)"
 class Regex {
 public:
     /**
@@ -142,6 +140,7 @@ private:
 
 #else
 
+#include <string>
 #include <vector>
 #include "Utils.h"
 class Regex {
@@ -219,4 +218,4 @@ private:
 #endif
 
 
-#endif /* _REGEX_H_ */
+#endif /* _PATTERNMATCH_H_ */

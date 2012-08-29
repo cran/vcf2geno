@@ -15,7 +15,7 @@ AbstractFileReader* AbstractFileReader::open(const char* fileName){
     case GZIP:
         fr = new GzipFileReader(fileName);
         break;
-#ifdef HAS_BZIP2
+#ifdef HAVE_BZIP2
       case BZIP2:
         fr = new Bzip2FileReader(fileName);
         break;
@@ -52,7 +52,7 @@ AbstractFileReader::FileType AbstractFileReader::checkFileType(const char* fileN
     if ( n >= 2 && header[0] == gz_magic[0] && header[1] == gz_magic[1]) {
         return GZIP;
     }
-#ifdef HAS_BZIP2
+#ifdef HAVE_BZIP2
     const int bzip2_magic[2] = {'B', 'Z'}; /* bzip2 magic header */
     if ( n >= 2 && header[0] == bzip2_magic[0] && header[1] == bzip2_magic[1]) {
         return BZIP2;
