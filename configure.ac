@@ -1,4 +1,4 @@
-AC_INIT(vcf2geno, 1.4, zhanxw@gmail.com)
+AC_INIT(vcf2geno, 1.5, zhanxw@gmail.com)
 AC_CONFIG_HEADERS(src/config.h)
 : ${R_HOME=`R RHOME`}
 if test -z "${R_HOME}"; then

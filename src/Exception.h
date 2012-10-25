@@ -47,7 +47,7 @@ inline void REPORT(const char* x) {
 
 inline void FATAL(const char* x) {
     REPORT(x);
-    REprintf("Critical error happening!"); //abort();
+    REprintf("Critical error happening!\n"); //abort();
 }
 
 #endif /* _EXCEPTION_H_ */

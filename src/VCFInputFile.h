@@ -164,6 +164,10 @@ public:
     int ret;
     // load contents
     if (this->mode == VCFInputFile::RANGE_MODE) {
+      if (!this->hasIndex) {
+        REprintf("[ERROR] Please provide tabix index file: [ tabix -p vcf your_vcf.vcf.gz ]\n");
+        return false;
+      }
       while (this->rangeIterator != this->rangeEnd) {
         if (!this->ti_line) { // last time does not read a valid line
           // get range

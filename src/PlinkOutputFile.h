@@ -41,7 +41,7 @@ public:
     this->fpFam = fopen( (prefix + ".fam").c_str(), "wt");
     if (!this->fpBed || !this->fpBim || !this->fpFam){
       REPORT("Cannot create binary PLINK file!");
-      REprintf("Critical error happening!"); //abort();
+      REprintf("Critical error happening!\n"); //abort();
     }
     // write Bed header
     char c;

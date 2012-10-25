@@ -19,7 +19,7 @@ public:
         }
         if (!this->fp){
             REPORT("Cannot create VCF file!");
-            REprintf("Critical error happening!"); //abort();
+            REprintf("Critical error happening!\n"); //abort();
         }
     };
     ~VCFOutputFile(){

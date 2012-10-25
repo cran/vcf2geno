@@ -650,7 +650,7 @@ public:
     // that help to use fputs()
     if (!this->buf) {
       REprintf("Cannot create BufferedFileWriter\n");
-      REprintf("Critical error happening!"); //abort();
+      REprintf("Critical error happening!\n"); //abort();
     }
     this->buf[bufLen] = '\0';
     this->bufPtr = 0;
@@ -734,7 +734,7 @@ public:
     this->fp = new BufferedFileWriter(this->fpRaw);
     if (!this->fpRaw || !this->fp){
       REprintf("Cannot create file\n");
-      REprintf("Critical error happening!"); //abort();
+      REprintf("Critical error happening!\n"); //abort();
     }
 
     this->createBuffer();
@@ -759,7 +759,7 @@ public:
     this->fp = new BufferedFileWriter(this->fpRaw);
     if (!this->fpRaw || !this->fp){
       REprintf("Cannot create file\n");
-      REprintf("Critical error happening!"); //abort();
+      REprintf("Critical error happening!\n"); //abort();
     }
 
     this->createBuffer();
@@ -857,7 +857,7 @@ private:
     this->buf = new char[newBufLen];
     if (!this->buf){
       REprintf("Cannot increase printf buffer for FileWriter.\n");
-      REprintf("Critical error happening!"); //abort();
+      REprintf("Critical error happening!\n"); //abort();
     };
     this->bufLen = newBufLen;
   };

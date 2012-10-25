@@ -31,14 +31,14 @@ public:
     //assert(ret == 1);
     if (c != magic1) {
       REprintf("Magic number of binary PLINK file does not match!\n");
-      REprintf("Critical error happening!"); //abort();
+      REprintf("Critical error happening!\n"); //abort();
     }
     int magic2 = 0x1b; // 0b00011011;
     ret = fread(&c, sizeof(char), 1, this->fpBed);
     //assert(ret == 1);
     if (c != magic2) {
       REprintf("Magic number of binary PLINK file does not match!\n");
-      REprintf("Critical error happening!"); //abort();
+      REprintf("Critical error happening!\n"); //abort();
     }
 
     // snp major mode
@@ -52,7 +52,7 @@ public:
       this->snpMajorMode = false;
     } else{
       REprintf("Unrecognized major mode in binary PLINK file.\n");
-      REprintf("Critical error happening!"); //abort();
+      REprintf("Critical error happening!\n"); //abort();
     }
 
     // read bim
