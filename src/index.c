@@ -10,7 +10,6 @@
 #endif
 #include "tabix.h"
 #include "R.h"
-
 #define TAD_MIN_CHUNK_GAP 32768
 // 1<<14 is the size of minimum bin.
 #define TAD_LIDX_SHIFT    14
@@ -84,38 +83,7 @@ int ti_readline(BGZF *fp, kstring_t *str)
  * commented out above. */
 int ti_readline(BGZF *fp, kstring_t *str)
 {
-	int l, state = 0;
-	unsigned char *buf = (unsigned char*)fp->uncompressed_block;
-	str->l = 0;
-	do {
-		if (fp->block_offset >= fp->block_length) {
-			if (bgzf_read_block(fp) != 0) { state = -2; break; }
-			if (fp->block_length == 0) { state = -1; break; }
-		}
-		for (l = fp->block_offset; l < fp->block_length && buf[l] != '\n'; ++l);
-		if (l < fp->block_length) state = 1;
-		l -= fp->block_offset;
-		if (str->l + l + 1 >= str->m) {
-			str->m = str->l + l + 2;
-			kroundup32(str->m);
-			str->s = (char*)realloc(str->s, str->m);
-		}
-		memcpy(str->s + str->l, buf + fp->block_offset, l);
-		str->l += l;
-		fp->block_offset += l + 1;
-		if (fp->block_offset >= fp->block_length) {
-#ifdef _USE_KNETFILE
-			fp->block_address = knet_tell(fp->x.fpr);
-#else
-			fp->block_address = ftello(fp->file);
-#endif
-			fp->block_offset = 0;
-			fp->block_length = 0;
-		} 
-	} while (state == 0);
-	if (str->l == 0 && state < 0) return state;
-	str->s[str->l] = 0;
-	return str->l;
+	return bgzf_getline(fp, '\n', str);
 }
 
 /*************************************
@@ -152,7 +120,7 @@ static int get_tid(ti_index_t *idx, const char *ss)
 		tid = size = kh_size(idx->tname);
 		k = kh_put(s, idx->tname, strdup(ss), &ret);
 		kh_value(idx->tname, k) = size;
-		//assert(idx->n == kh_size(idx->tname));
+		assert(idx->n == kh_size(idx->tname));
 	} else tid = kh_value(idx->tname, k);
 	return tid;
 }
@@ -216,7 +184,7 @@ int ti_get_intv(const ti_conf_t *conf, int len, char *line, ti_interval_t *intv)
 	if (ncols < conf->sc || ncols < conf->bc || ncols < conf->ec) {
 		if (ncols == 1) REprintf("[get_intv] Is the file tab-delimited? The line has %d field only: %s\n", ncols, line);
 		else REprintf("[get_intv] The line has %d field(s) only: %s\n", ncols, line);
-		REprintf("Critical error!\n"); // exit(1);
+		exit(1);
 	}
 */
 	if (intv->ss == 0 || intv->se == 0 || intv->beg < 0 || intv->end < 0) return -1;
@@ -234,7 +202,7 @@ static int get_intv(ti_index_t *idx, kstring_t *str, ti_intv_t *intv)
 		intv->bin = ti_reg2bin(intv->beg, intv->end);
 		return (intv->tid >= 0 && intv->beg >= 0 && intv->end >= 0)? 0 : -1;
 	} else {
-		REprintf("[%s] the following line cannot be parsed and skipped: %s\n", __func__, str->s);
+		REprintf( "[%s] the following line cannot be parsed and skipped: %s\n", __func__, str->s);
 		return -1;
 	}
 }
@@ -347,19 +315,19 @@ ti_index_t *ti_index_core(BGZF *fp, const ti_conf_t *conf)
         if ( intv.beg<0 || intv.end<0 )
         {
             REprintf("[ti_index_core] the indexes overlap or are out of bounds\n");
-            REprintf("Critical error!\n"); // exit(1);
+            return 0;//exit(1);
         }
 		if (last_tid != intv.tid) { // change of chromosomes
             if (last_tid>intv.tid )
             {
                 REprintf("[ti_index_core] the chromosome blocks not continuous at line %llu, is the file sorted? [pos %d]\n",(unsigned long long)lineno,intv.beg+1);
-                REprintf("Critical error!\n"); // exit(1);
+                return 0; //                exit(1);
             }
 			last_tid = intv.tid;
 			last_bin = 0xffffffffu;
 		} else if (last_coor > intv.beg) {
-			REprintf("[ti_index_core] the file out of order at line %llu\n", (unsigned long long)lineno);
-			REprintf("Critical error!\n"); // exit(1);
+			REprintf( "[ti_index_core] the file out of order at line %llu\n", (unsigned long long)lineno);
+			return 0; // exit(1);
 		}
 		tmp = insert_offset2(&idx->index2[intv.tid], intv.beg, intv.end, last_off);
 		if (last_off == 0) offset0 = tmp;
@@ -372,9 +340,9 @@ ti_index_t *ti_index_core(BGZF *fp, const ti_conf_t *conf)
 			if (save_tid < 0) break;
 		}
 		if (bgzf_tell(fp) <= last_off) {
-			REprintf("[ti_index_core] bug in BGZF: %llx < %llx\n",
+			REprintf( "[ti_index_core] bug in BGZF: %llx < %llx\n",
 					(unsigned long long)bgzf_tell(fp), (unsigned long long)last_off);
-			REprintf("Critical error!\n"); // exit(1);
+			return 0; // exit(1);
 		}
 		last_off = bgzf_tell(fp);
 		last_coor = intv.beg;
@@ -433,7 +401,7 @@ void ti_index_save(const ti_index_t *idx, BGZF *fp)
 		uint32_t x = idx->n;
 		bgzf_write(fp, bam_swap_endian_4p(&x), 4);
 	} else bgzf_write(fp, &idx->n, 4);
-	//assert(sizeof(ti_conf_t) == 24);
+	assert(sizeof(ti_conf_t) == 24);
 	if (ti_is_be) { // write ti_conf_t;
 		uint32_t x[6];
 		memcpy(x, &idx->conf, 24);
@@ -509,12 +477,12 @@ static ti_index_t *ti_index_load_core(BGZF *fp)
 	ti_index_t *idx;
 	ti_is_be = bam_is_big_endian();
 	if (fp == 0) {
-		REprintf("[ti_index_load_core] fail to load index.\n");
+		REprintf( "[ti_index_load_core] fail to load index.\n");
 		return 0;
 	}
 	bgzf_read(fp, magic, 4);
 	if (strncmp(magic, "TBI\1", 4)) {
-		REprintf("[ti_index_load] wrong magic number.\n");
+		REprintf( "[ti_index_load] wrong magic number.\n");
 		return 0;
 	}
 	idx = (ti_index_t*)calloc(1, sizeof(ti_index_t));	
@@ -620,11 +588,11 @@ static void download_from_remote(const char *url)
 	++fn; // fn now points to the file name
 	fp_remote = knet_open(url, "r");
 	if (fp_remote == 0) {
-		REprintf("[download_from_remote] fail to open remote file.\n");
+		REprintf( "[download_from_remote] fail to open remote file.\n");
 		return;
 	}
 	if ((fp = fopen(fn, "w")) == 0) {
-		REprintf("[download_from_remote] fail to create file in the working directory.\n");
+		REprintf( "[download_from_remote] fail to create file in the working directory.\n");
 		knet_close(fp_remote);
 		return;
 	}
@@ -657,7 +625,7 @@ static char *get_local_version(const char *fn)
 			free(url);
 			return fnidx;
 		}
-		REprintf("[%s] downloading the index file...\n", __func__);
+		REprintf( "[%s] downloading the index file...\n", __func__);
 		download_from_remote(url);
 		free(url);
 	}
@@ -683,7 +651,7 @@ ti_index_t *ti_index_load(const char *fn)
     char *fname = get_local_version(fn);
 	if (fname == 0) return 0;
 	idx = ti_index_load_local(fname);
-	if (idx == 0) REprintf("[ti_index_load] fail to load the index: %s\n", fname);
+	if (idx == 0) REprintf( "[ti_index_load] fail to load the index: %s\n", fname);
     free(fname);
 	return idx;
 }
@@ -694,7 +662,7 @@ int ti_index_build2(const char *fn, const ti_conf_t *conf, const char *_fnidx)
 	BGZF *fp, *fpidx;
 	ti_index_t *idx;
 	if ((fp = bgzf_open(fn, "r")) == 0) {
-		REprintf("[ti_index_build2] fail to open the file: %s\n", fn);
+		REprintf( "[ti_index_build2] fail to open the file: %s\n", fn);
 		return -1;
 	}
 	idx = ti_index_core(fp, conf);
@@ -886,7 +854,7 @@ const char *ti_iter_read(BGZF *fp, ti_iter_t iter, int *len)
 		int ret;
 		if (iter->curr_off == 0 || iter->curr_off >= iter->off[iter->i].v) { // then jump to the next chunk
 			if (iter->i == iter->n_off - 1) break; // no more chunks
-			if (iter->i >= 0) //assert(iter->curr_off == iter->off[iter->i].v); // otherwise bug
+			if (iter->i >= 0) assert(iter->curr_off == iter->off[iter->i].v); // otherwise bug
 			if (iter->i < 0 || iter->off[iter->i].v != iter->off[iter->i+1].u) { // not adjacent chunks; then seek
 				bgzf_seek(fp, iter->off[iter->i+1].u, SEEK_SET);
 				iter->curr_off = bgzf_tell(fp);

@@ -6,7 +6,8 @@
     annoType, vcfColumn, vcfInfo, vcfIndv)
 }
 \arguments{
-  \item{fileName}{input VCF file}
+  \item{fileName}{input VCF file (Bgzipped, with Tabix
+  index)}
 
   \item{geneFile}{a text file listing all genes in refFlat
   format}

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-
+#include "TypeConversion.h"
 #include "R.h"
 
 void extractString(SEXP in, std::string* out) {
@@ -74,6 +74,20 @@ int storeResult(const std::vector<int>& in , SEXP& ret, int idx) {
   SET_VECTOR_ELT(ret, idx, s);
   return 1;
 }
+int storeIntResult(const std::vector<std::string>& in , SEXP& ret, int idx) {
+  SEXP s; // = VECTOR_ELT(ret, i);
+  int n = in.size();
+  int tmp;
+  PROTECT(s = allocVector(INTSXP, n));
+  for (int i = 0; i < n; ++i) {
+    if (str2int(in[i], &tmp)) 
+      INTEGER(s)[i] = tmp;
+    else
+      INTEGER(s)[i] = NA_INTEGER;
+  }
+  SET_VECTOR_ELT(ret, idx, s);
+  return 1;
+}
 
 int storeResult(const std::vector<double>& in , SEXP& ret, int idx) {
   SEXP s; // = VECTOR_ELT(ret, i);
@@ -81,6 +95,21 @@ int storeResult(const std::vector<double>& in , SEXP& ret, int idx) {
   PROTECT(s = allocVector(REALSXP, n));
   for (int i = 0; i < n; ++i) {
     REAL(s)[i] = in[i];
+  }
+  SET_VECTOR_ELT(ret, idx, s);
+  return 1;
+}
+
+int storeDoubleResult(const std::vector<std::string>& in , SEXP& ret, int idx) {
+  SEXP s; // = VECTOR_ELT(ret, i);
+  int n = in.size();
+  double tmp;
+  PROTECT(s = allocVector(REALSXP, n));
+  for (int i = 0; i < n; ++i) {
+    if (str2double(in[i], &tmp))
+      REAL(s)[i] = tmp;
+    else
+      REAL(s)[i] = NA_REAL;
   }
   SET_VECTOR_ELT(ret, idx, s);
   return 1;

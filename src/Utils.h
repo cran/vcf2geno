@@ -140,7 +140,18 @@ inline std::string tolower(const std::string& s) {
   return ret;
 }
 
+inline void toupper(std::string* s) {
+  for (std::string::iterator i = s->begin();
+       i != s->end();
+       ++i)
+    (*i) = toupper(*i);
+}
 
+inline std::string toupper(const std::string& s) {
+  std::string ret(s);
+  toupper(&ret);
+  return ret;
+}
 /**
  * print out the content for debug only
  */

@@ -1,8 +1,8 @@
-\name{rvmeta.readCov}
-\alias{rvmeta.readCov}
+\name{rvmeta.readCovByRange}
+\alias{rvmeta.readCovByRange}
 \title{Read covariance}
 \usage{
-  rvmeta.readCov(covFile, tabixRange)
+  rvmeta.readCovByRange(covFile, tabixRange)
 }
 \arguments{
   \item{covFile}{covaraite file (vcf2ld_window outputs)}
