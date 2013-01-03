@@ -1,8 +1,8 @@
 Package: vcf2geno
 Type: Package
 Title: Efficiently Read Variant Call Format (VCF) into R
-Version: 1.6
-Date: 2012-12-16
+Version: 1.7
+Date: 2013-1-3
 Author: Xiaowei Zhan <zhanxw@gmail.com> and Dajiang Liu
         <dajiang.liu@gmail.com>, with contributions of Jean-loup Gailly
         <jloup@gzip.org> and Mark Adler
@@ -29,6 +29,6 @@ Copyright: We have used the following software and made minimal
 License: GPL
 URL: http://zhanxw.com/vcf2geno
 Collate: 'vcf2geno.R'
-Packaged: 2012-12-26 23:40:20 UTC; zhanxw
+Packaged: 2013-01-20 15:19:44 UTC; zhanxw
 Repository: CRAN
-Date/Publication: 2013-01-02 08:01:36
+Date/Publication: 2013-01-20 17:22:08

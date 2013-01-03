@@ -1,8 +1,9 @@
-\name{rvmeta.readData}
-\alias{rvmeta.readData}
+\name{rvmeta.readDataByGene}
+\alias{rvmeta.readDataByGene}
 \title{Read a gene from VCF file and return a genotypes matrix}
 \usage{
-  rvmeta.readData(scoreTestFiles, covFiles, geneFile, gene)
+  rvmeta.readDataByGene(scoreTestFiles, covFiles, geneFile,
+    gene)
 }
 \arguments{
   \item{scoreTestFiles}{score test output file (rvtests
