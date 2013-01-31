@@ -4,6 +4,8 @@
 #include "tabix.h"
 #include "RangeList.h"
 
+#include <iostream>
+#include "R.h"
 class TabixReader{
 public:
 TabixReader(const std::string& fn) : inReading(false) {
@@ -16,11 +18,13 @@ TabixReader(const std::string& fn) : inReading(false) {
   bool openIndex(const std::string& fn) {
     if (( this->tabixHandle = ti_open(fn.c_str(), 0)) == 0 ) {
       // failed to open tabix index
+      REprintf("Cannot open index file for file [ %s ]!\n", fn.c_str());
       this->hasIndex = false;
       return false;
     } else{
       if (ti_lazy_index_load(this->tabixHandle) != 0) {
         // failed to open tabix index
+        REprintf("Cannot open index file for file [ %s ]!\n", fn.c_str());
         this->hasIndex = false;
         return false;
       } else {

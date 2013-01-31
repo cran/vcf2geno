@@ -1,10 +1,11 @@
 #ifndef _R_CPP_INTERFACE_H_
 #define _R_CPP_INTERFACE_H_
 
+// include <iostream> to avoid ''length'' macro problem on MacOS machines
+#include <iostream>   
 #include <R.h>
 #include <Rdefines.h> // define SEXP
 
-#include <iostream>
 #include <string>
 #include <vector>
 #include <set>

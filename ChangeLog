@@ -1,3 +1,9 @@
+2013-01-31  Xiaowei Zhan  <zhanxw@host10-41.sph.umich.edu>
+
+	* Add MacOS compatability
+	* Sort extract locations for meta-analysis
+	* Add vignette
+
 2013-01-03  Xiaowei Zhan  <zhanxw@fantasia.sph.umich.edu>
 
 	* Add Windows compatability

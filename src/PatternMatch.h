@@ -41,7 +41,7 @@ public:
             // fputs(error_buf, stderr);
             return -1;
         }
-        Rprintf("Regcomp OK\n");
+        // Rprintf("Regcomp OK\n");
         this->initialized = true;
         return 0;
     };

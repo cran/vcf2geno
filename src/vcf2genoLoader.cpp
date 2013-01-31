@@ -447,7 +447,7 @@ SEXP impl_readVCFToListByRange(SEXP arg_fileName, SEXP arg_range, SEXP arg_annoT
   if (FLAG_range.size())
     vin.setRangeList(FLAG_range.c_str());
   else {
-    error("Please provide a range before we can continue\n");
+    error("Please provide a range before we can continue.\n");
   };
 
   if (FLAG_annoType.size()) {
@@ -506,7 +506,7 @@ SEXP impl_readVCFToListByGene(SEXP arg_fileName, SEXP arg_geneFile, SEXP arg_gen
   if (range.size())
     vin.setRangeList(range.c_str());
   else {
-    error("Please provide a range before we can continue\n");
+    error("Please provide a valid gene name before we can continue.\n");
   };
 
   if (FLAG_annoType.size()) {

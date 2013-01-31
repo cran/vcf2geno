@@ -231,7 +231,21 @@ void addLocationPerGene(const std::string& gene,
     val = (*location)[gene].size();
     (*location)[gene][key] = val;
   }
-}
+} // end addLocationPerGene
+
+/**
+ * We will make sure locations are sorted
+ * @param locations: key is 1:1000, value is index
+ */
+void sortLocationPerGene(std::map< std::string, int>* locations) {
+  int i = 0;
+  for (std::map<std::string, int>::iterator it = locations->begin();
+       it != locations->end();
+       ++it) {
+    it->second = i ++;
+    Rprintf("%s - %d\n", it ->first.c_str(), it->second);
+  }
+} // end sortLocationPerGene
 
 #define RET_REF_INDEX 0
 #define RET_ALT_INDEX 1
@@ -295,6 +309,9 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
        ++geneRangeIter) {
     for (int i = 0; i < nStudy; ++i) {
       addLocationPerGene(geneRangeIter->first, geneRangeIter->second, FLAG_pvalFile[i], &geneLocationMap);
+    }
+    for (int i = 0; i < nStudy; ++i) {
+      sortLocationPerGene(& (geneLocationMap[geneRangeIter->first]));
     }
   };
   std::map<std::string, std::set<std::string> > posAnnotationMap;
