@@ -106,7 +106,7 @@ void RangeList::addRangeList(const char* argRangeList) {
   std::vector<std::string> col;
   //col.AddTokens(arg, ',');
   stringTokenize(rangeList, ',', &col);
-  for (unsigned int i = 0; i < col.size(); i++){
+  for (size_t i = 0; i < col.size(); i++){
     std::string c;
     unsigned int b,e;
     if (!parseRangeFormat(col[i], &c, &b, &e)) {

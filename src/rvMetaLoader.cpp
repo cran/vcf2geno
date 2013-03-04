@@ -219,6 +219,7 @@ void addLocationPerGene(const std::string& gene,
                         std::map< std::string, std::map< std::string, int> >* location) {
   TabixReader tr(fn);
   tr.addRange(range);
+  tr.mergeRange();
   std::string line;
   std::vector<std::string> fd;
   std::string key;
@@ -243,7 +244,7 @@ void sortLocationPerGene(std::map< std::string, int>* locations) {
        it != locations->end();
        ++it) {
     it->second = i ++;
-    Rprintf("%s - %d\n", it ->first.c_str(), it->second);
+    // Rprintf("%s - %d\n", it ->first.c_str(), it->second);
   }
 } // end sortLocationPerGene
 
@@ -666,7 +667,7 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
         }
 
       } // end while
-      Rprintf("Done read file: %s\n", FLAG_pvalFile[study].c_str());
+      Rprintf("Done read score file: %s\n", FLAG_pvalFile[study].c_str());
     }
   } // end loop by study
   // fill in position and annotation
@@ -738,8 +739,10 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
         const std::map< std::string, int>& location2idx = geneLocationMap.find(gene)->second;
 
         std::set<std::string> processedSite ;
+        
         TabixReader tr(FLAG_covFile[study]);
         tr.addRange(range);
+        tr.mergeRange();
         std::string line;
         std::vector< std::string> fd;
         while( tr.readLine(&line) ){
@@ -782,7 +785,7 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
           }
         } // end tabixReader
       } // end loop by gene
-      Rprintf("Done read file: %s\n", FLAG_covFile[study].c_str());
+      Rprintf("Done read cov file: %s\n", FLAG_covFile[study].c_str());
     } // end loop by study
   }
 
@@ -1238,362 +1241,3 @@ SEXP impl_readScoreByRange(SEXP arg_scoreFile, SEXP arg_range) {
   UNPROTECT(numAllocated);
   return ret;
 } // impl_readScoreByRange
-
-
-#define HIDE
-#ifndef HIDE
-/**
- * Read serveral @param arg_pvalFile and equal number of @param arg_covFile,
- * return reesult for @arg_gene.
- * @return a list, each index is a gene.
- * then under gene, we have a list of values: numSample, maf, ...
- * then under gene/values level, we have a list (with length equals to numStudy) of double/int
- * NOTE:
- * we don't handle variants at duplicated positions.
- */
-SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile, SEXP arg_gene) {
-  int numAllocated = 0;
-  SEXP ret = R_NilValue;
-
-  // load by position
-  std::set<std::string> FLAG_gene;
-  std::vector<std::string> FLAG_pvalFile, FLAG_covFile;
-  extractStringSet(arg_gene, &FLAG_gene);
-  extractStringArray(arg_pvalFile, &FLAG_pvalFile);
-  extractStringArray(arg_covFile, &FLAG_covFile);
-
-  if (FLAG_pvalFile.size() != FLAG_covFile.size()){
-    Rprintf("Unequal size!\n");
-    error("Quitting");
-  }
-
-  int nStudy = FLAG_pvalFile.size();
-
-  // get locations for the same gene from all provided cov files
-  typedef std::map<std::string, std::map<std::string, int> > GeneLocationMap;
-  GeneLocationMap geneLocationMap; // gene -> location -> location index
-  std::set<std::string> locations; // only these locations will be considered in analysis.
-  std::map<std::string, std::string> locationGeneMap; // location -> gene name
-  std::map<std::string, int> geneIndex; // gene -> its index in returned list
-
-  for (int i = 0; i < nStudy; ++i){
-    LineReader lr(FLAG_covFile[i].c_str());
-    std::vector<std::string> fd;
-    std::vector<std::string> pos;
-    std::string buf;
-    while(lr.readLineBySep(&fd, " \t")){
-      std::string& gene = fd[COV_FILE_GENE_COL];
-      // if (gene != "CFH") continue;
-      if (FLAG_gene.count(gene) == 0) continue;
-
-      stringNaturalTokenize(fd[COV_FILE_POS_COL], ',', &pos);
-      for (size_t i = 0; i < pos.size(); i++){
-        // sprintf(buf, "%s:%s", fd[0].c_str(), pos[i].c_str());
-        buf = fd[COV_FILE_CHROM_COL];
-        buf += ':';
-        buf += pos[i];
-        if (geneLocationMap[gene].count(buf) == 0) {
-          int s = geneLocationMap[gene].size();
-          geneLocationMap[gene] [buf] = s;
-          locations.insert(buf);
-          // Rprintf("Gene %s location %s has index %d\n", gene.c_str(), buf.c_str(), geneLocationMap[gene][buf]);
-        }
-        if (locationGeneMap.count(buf) == 0) {
-          locationGeneMap[buf] = gene;
-        } else {
-          // NOTE: need to take care of it later!
-          // Rprintf("Same location [ %s ] have more than one gene [ %s ]\n", buf.c_str(), gene.c_str());
-        };
-        // Rprintf("add gene [ %s ] position %s\n", gene.c_str(), buf.c_str());
-      }
-    }
-  }
-  int nGene = geneLocationMap.size();
-  Rprintf("%d gene loaded from covariate file.\n", nGene);
-
-  PROTECT(ret = allocVector(VECSXP, nGene));
-  numAllocated ++;
-  // set list names
-  SEXP geneNames;
-  PROTECT(geneNames = allocVector(STRSXP, nGene));
-  numAllocated ++;
-  {
-    int i = 0;
-    for ( GeneLocationMap::iterator iter = geneLocationMap.begin();
-          iter != geneLocationMap.end() ; ++iter){
-      // Rprintf("assign gene name: %s\n", iter->first.c_str());
-      SET_STRING_ELT(geneNames, i, mkChar(iter->first.c_str()));
-      geneIndex[iter->first.c_str()] = i;
-      ++i;
-    }
-  }
-  setAttrib(ret, R_NamesSymbol, geneNames);
-
-  // create n, maf, p, cov
-  std::vector<std::string> names;
-  names.push_back("ref");
-  names.push_back("alt");
-  names.push_back("nSample");
-  names.push_back("maf");
-  names.push_back("stat");
-  names.push_back("direction");
-  names.push_back("pVal");
-  names.push_back("cov");
-  names.push_back("pos");
-  names.push_back("anno");
-
-  GeneLocationMap::iterator iter = geneLocationMap.begin();
-  for ( int i = 0;
-        iter != geneLocationMap.end() ; ++iter, ++i){
-    SEXP s = VECTOR_ELT(ret, i);
-    numAllocated += createList(names.size(), &s); // a list with 10 elements: ref, alt, n, maf, stat, direction, p, cov, pos, anno
-    numAllocated += setListNames(names, &s);
-
-    SEXP ref, alt, n, maf, stat, direction, p, cov, pos, anno;
-    numAllocated += createList(nStudy, &ref);
-    numAllocated += createList(nStudy, &alt);
-    numAllocated += createList(nStudy, &n);
-    numAllocated += createList(nStudy, &maf);
-    numAllocated += createList(nStudy, &stat);
-    numAllocated += createList(nStudy, &direction);
-    numAllocated += createList(nStudy, &p);
-    numAllocated += createList(nStudy, &cov);
-    numAllocated += createList(nStudy, &pos);
-    numAllocated += createList(nStudy, &anno);
-
-    int npos = iter->second.size();
-    for (int j = 0; j < nStudy; ++j) {
-      SEXP t;
-      numAllocated += createStringArray(npos, &t);
-      initStringArray(t);
-      SET_VECTOR_ELT(ref, j, t);
-
-      numAllocated += createStringArray(npos, &t);
-      initStringArray(t);
-      SET_VECTOR_ELT(alt, j, t);
-
-      numAllocated += createIntArray(npos, &t);
-      initIntArray(t);
-      SET_VECTOR_ELT(n, j, t);
-
-      numAllocated += createDoubleArray(npos, &t);
-      initDoubleArray(t);
-      SET_VECTOR_ELT(maf, j, t);
-
-      numAllocated += createDoubleArray(npos, &t);
-      initDoubleArray(t);
-      SET_VECTOR_ELT(stat, j, t);
-
-      numAllocated += createIntArray(npos, &t);
-      initIntArray(t);
-      SET_VECTOR_ELT(direction, j, t);
-
-      numAllocated += createDoubleArray(npos, &t);
-      initDoubleArray(t);
-      SET_VECTOR_ELT(p, j, t);
-
-      // Rprintf("Create double array %d for study %d\n", npos * npos, j);
-      numAllocated += createDoubleArray(npos*npos, &t);
-      numAllocated += setDim(npos, npos, &t);
-      initDoubleArray(t);
-      SET_VECTOR_ELT(cov, j, t);
-    }
-    numAllocated += createStringArray(npos, &pos);
-    initStringArray(pos);
-
-    numAllocated += createStringArray(npos, &anno);
-    initStringArray(anno);
-
-    SET_VECTOR_ELT(s, RET_REF_INDEX, ref);
-    SET_VECTOR_ELT(s, RET_ALT_INDEX, alt);
-    SET_VECTOR_ELT(s, RET_NSAMPLE_INDEX, n);
-    SET_VECTOR_ELT(s, RET_MAF_INDEX, maf);
-    SET_VECTOR_ELT(s, RET_STAT_INDEX, stat);
-    SET_VECTOR_ELT(s, RET_DIRECTION_INDEX, direction);
-    SET_VECTOR_ELT(s, RET_PVAL_INDEX, p);
-    SET_VECTOR_ELT(s, RET_COV_INDEX, cov);
-    SET_VECTOR_ELT(s, RET_POS_INDEX, pos);
-    SET_VECTOR_ELT(s, RET_ANNO_INDEX, anno);
-
-    SET_VECTOR_ELT(ret, i, s);
-  };
-
-  std::map< std::string, std::set<std::string> > posAnnotationMap;
-
-  Rprintf("Read score tests...\n");
-  // read pval file and fill in values
-  std::string p;
-  double tempDouble;
-  int tempInt;
-  for (int study = 0; study < nStudy; ++study) {
-    Rprintf("In study %d\n", study);
-    LineReader lr(FLAG_pvalFile[study].c_str());
-    std::vector<std::string> fd;
-    std::set< std::string> processedSite;
-    while (lr.readLineBySep(&fd, " \t")){
-      if (fd.size() < PVAL_FILE_FIELD_LEN) {
-        Rprintf("File format is incorrect [ %s ], skipped\n", FLAG_pvalFile[study].c_str());
-        break;
-      }
-      p = fd[PVAL_FILE_CHROM_COL];
-      p += ':';
-      p += fd[PVAL_FILE_POS_COL];
-      if (processedSite.count(p) == 0) {
-        processedSite.insert(p);
-      } else{
-        Rprintf("Position %s appeared more than once, skipping...\n", p.c_str());
-        continue;
-      }
-
-      SEXP u, v, s;
-      std::string& gene = locationGeneMap[p];
-      if (FLAG_gene.count(gene) == 0) continue;
-      if (geneLocationMap.count(gene) == 0 ||
-          geneLocationMap[gene].count(p) == 0) continue; // skip non existing position
-      int idx = geneLocationMap[gene][p];
-
-      // Rprintf("working on index %d\n", idx);
-      u = VECTOR_ELT(ret, geneIndex[gene]);
-      v = VECTOR_ELT(u, RET_REF_INDEX);
-      s = VECTOR_ELT(v, study); // ref
-      SET_STRING_ELT(s, idx, mkChar(fd[PVAL_FILE_REF_COL].c_str()));
-
-      u = VECTOR_ELT(ret, geneIndex[gene]);
-      v = VECTOR_ELT(u, RET_ALT_INDEX);
-      s = VECTOR_ELT(v, study); // alt
-      SET_STRING_ELT(s, idx, mkChar(fd[PVAL_FILE_ALT_COL].c_str()));
-
-      if ( str2int(fd[PVAL_FILE_NSAMPLE_COL], &tempInt) ) {
-        u = VECTOR_ELT(ret, geneIndex[gene]);
-        v = VECTOR_ELT(u, RET_NSAMPLE_INDEX);
-        s = VECTOR_ELT(v, study); // n
-        INTEGER(s)[idx] = tempInt;
-      }
-
-      if ( str2double(fd[PVAL_FILE_MAF_COL], &tempDouble) ) {
-        v = VECTOR_ELT(u, RET_MAF_INDEX);
-        s = VECTOR_ELT(v, study); // maf
-        REAL(s)[idx] = tempDouble;
-      }
-
-      if ( str2double( fd[PVAL_FILE_STAT_COL], & tempDouble)) {
-        v = VECTOR_ELT(u, RET_STAT_INDEX);
-        s = VECTOR_ELT(v, study); // stat
-        REAL(s)[idx] = tempDouble;
-      }
-
-      v = VECTOR_ELT(u, RET_DIRECTION_INDEX);
-      s = VECTOR_ELT(v, study); // direction
-      if (fd[PVAL_FILE_DIRECTION_COL] == "+") {
-        INTEGER(s)[idx] = 1;
-      } else if (fd[PVAL_FILE_DIRECTION_COL] == "-") {
-        INTEGER(s)[idx] = -1;
-      }
-
-      if ( str2double(fd[PVAL_FILE_PVAL_COL], & tempDouble)) {
-        // Rprintf("Set pval index");
-
-        v = VECTOR_ELT(u, RET_PVAL_INDEX);
-        s = VECTOR_ELT(v, study); // pval
-        REAL(s)[idx] = tempDouble;
-      };
-
-      // // Rprintf("Set pos index");
-      // v = VECTOR_ELT(u, RET_POS_INDEX);
-      // s = VECTOR_ELT(v, study); // position
-      // SET_STRING_ELT(s, idx, mkChar(p.c_str()));
-
-      // // Rprintf("Set anno index");
-      // if (fd.size() >= PVAL_FILE_ANNO_COL + 1) {
-      //   v = VECTOR_ELT(u, RET_ANNO_INDEX);
-      //   s = VECTOR_ELT(v, study); // anno
-      //   SET_STRING_ELT(s, idx, mkChar(fd[PVAL_FILE_ANNO_COL].c_str()));
-      // }
-      if (fd.size() >= PVAL_FILE_ANNO_COL + 1) {
-        const std::string& s = fd[PVAL_FILE_ANNO_COL];
-        if (!posAnnotationMap[p].count(s))  {
-          posAnnotationMap[p].insert(s);
-        }
-      }
-    }; // end while
-    Rprintf("Done read file: %s\n", FLAG_pvalFile[study].c_str());
-  }
-
-  // fill in position and annotation
-  iter = geneLocationMap.begin();
-  for ( int i = 0;
-        iter != geneLocationMap.end() ; ++iter, ++i){
-    std::map<std::string, int>& loc2idx = iter->second;
-    SEXP u = VECTOR_ELT(ret, geneIndex[iter->first]);
-    SEXP pos = VECTOR_ELT(u, RET_POS_INDEX);
-    SEXP anno = VECTOR_ELT(u, RET_ANNO_INDEX);
-
-    for (std::map<std::string, int>::const_iterator it = loc2idx.begin();
-         it != loc2idx.end();
-         ++it) {
-      int idx = it->second;
-      if (locations.count(it->first)) {
-        SET_STRING_ELT(pos, idx, mkChar(it->first.c_str()));
-      }
-      if (posAnnotationMap.count(it->first)) {
-        std::string ret;
-        set2string(posAnnotationMap[it->first], &ret, ',');
-        SET_STRING_ELT(anno, idx, mkChar(ret.c_str()));
-      };
-    }
-  }
-  // read cov file and record pos2idx
-  Rprintf("Read cov files ... \n");
-  for (int study = 0; study < nStudy; ++study) {
-    LineReader lr(FLAG_covFile[study].c_str());
-    std::vector<std::string> fd;
-    std::vector<std::string> pos;
-    std::vector<double> cov;
-    std::string p;
-
-    while (lr.readLineBySep(&fd, " \t")){
-      std::string& g = fd[COV_FILE_GENE_COL];
-      if (geneLocationMap.count(g) == 0) continue;
-      // Rprintf("begin parse pos, cov\n");
-      std::string& chr = fd[COV_FILE_CHROM_COL];
-      // Rprintf("pos: %s\n", fd[COV_FILE_COV_COL].c_str());
-      stringNaturalTokenize(fd[COV_FILE_COV_COL], ',', &pos); /// temporary use variable pos to store cov
-      cov.resize(pos.size());
-      for (size_t i = 0; i < pos.size(); ++i){
-        cov[i] = atof(pos[i]);
-      }
-      stringNaturalTokenize(fd[COV_FILE_POS_COL], ',', &pos);
-      for (size_t i = 0; i < pos.size(); ++i) {
-        pos[i] = chr + ":" + pos[i];
-      };
-
-      int k = 0;
-      int covLen = geneLocationMap[g].size();
-      SEXP u, v, s;
-      u = VECTOR_ELT(ret, geneIndex[g]);
-      v = VECTOR_ELT(u, RET_COV_INDEX);  // cov is the 6th element in the list
-      // Rprintf("Gene [%s] has %d locations \n", g.c_str(), covLen);
-      for (size_t i = 0; i < pos.size(); i++) {
-        for (size_t j = i; j < pos.size(); j++) {
-          std::string& pi = pos[i];
-          std::string& pj = pos[j];
-          int posi = geneLocationMap[g][pi];
-          int posj = geneLocationMap[g][pj];
-
-          s = VECTOR_ELT(v, study);
-
-          REAL(s) [posi * covLen + posj] = cov[k];
-          REAL(s) [posj * covLen + posi] = cov[k];
-          ++k;
-        }
-      }
-    }
-  }
-  Rprintf("Finished calculation.\n");
-  UNPROTECT(numAllocated);
-  return ret;
-} // SEXP rvMetaRead2List(SEXP arg_pvalFile, SEXP arg_covFile) {
-
-
-// HIDE
-#endif

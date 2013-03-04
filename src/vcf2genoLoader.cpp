@@ -93,9 +93,27 @@ SEXP readVCF2Matrix(VCFExtractor* vin) {
   // finish up
   UNPROTECT(5);
   return(ans);
+} // end readVCF2Matrix
 
+/**
+ * @param file name
+ * @return check whether VCF files has ANNO tag
+ */
+bool vcfHasAnnotation(const std::string& fn) {
+  //fprintf(stdout, "range = %s\n", range.c_str());
+  VCFInputFile vin(fn);
+  while (vin.readRecord()) {
+    VCFRecord& r = vin.getVCFRecord();
+    VCFInfo& info = r.getVCFInfo();
+    bool tagMissing;
+    info.getTag("ANNO", &tagMissing);
+    if (tagMissing) {
+      return false;
+    }
+    return true;
+  }
+  return false;
 }
-
 
 /**
  * @param arg_fileName: a string character
@@ -119,6 +137,12 @@ SEXP impl_readVCFToMatrixByRange(SEXP arg_fileName, SEXP arg_range, SEXP arg_ann
     return ans;
   }
 
+  if (!FLAG_annoType.empty() && !vcfHasAnnotation(FLAG_fileName)) {
+    REprintf("Please use annotated VCF as input (cannot find ANNO in the INFO field);\n");
+    REprintf("Prefer using ANNO from https://github.com/zhanxw/anno  \n");
+    return ans;
+  }
+  
   // REprintf("range = %s\n", FLAG_range.c_str());
   VCFExtractor vin(FLAG_fileName.c_str());
   vin.setRangeList(FLAG_range.c_str());
@@ -129,7 +153,7 @@ SEXP impl_readVCFToMatrixByRange(SEXP arg_fileName, SEXP arg_range, SEXP arg_ann
 
   // real working part
   return readVCF2Matrix(&vin);
-}
+} //end impl_readVCFToMatrixByRange
 
 /**
  * @param arg_fileName: a string character
@@ -151,23 +175,12 @@ SEXP impl_readVCFToMatrixByGene(SEXP arg_fileName, SEXP arg_geneFile, SEXP arg_g
   if (FLAG_geneName.size() && FLAG_geneFile.size() == 0) {
     error("Please provide gene file name when extract genotype by gene");
   }
-#if 0
-  // default values to easy testing
-  if (!FLAG_fileName.size()) {
-    FLAG_fileName = "/net/fantasia/home/zhanxw/rvtests/executable/all.anno.filtered.vcf.gz";
-    warning("Use example indexed annotated VCF file: /net/fantasia/home/zhanxw/rvtests/executable/all.anno.filtered.vcf.gz");
+  if (!FLAG_annoType.empty() && !vcfHasAnnotation(FLAG_fileName)) {
+    REprintf("Please use annotated VCF as input (cannot find ANNO in the INFO field);\n");
+    REprintf("Prefer using ANNO from https://github.com/zhanxw/anno  \n");
+    return ans;
   }
-  if (FLAG_geneName.size()) {
-    if (!FLAG_geneFile.size()) {
-      FLAG_geneFile = "/net/fantasia/home/zhanxw/rvtests/executable/refFlat_hg19_uniq_gene.txt.gz";
-      warning(" gene files: /net/fantasia/home/zhanxw/rvtests/executable/refFlat_hg19_uniq_gene.txt.gz");
-    }
-  } else {
-    FLAG_geneName = "CFH";
-    warning("We set gene name to be CFH, otherwise you may dump the whole VCF file (huge memory!)");
-  }
-#endif
-
+  
   std::map< std::string, std::string> geneRange;
   loadGeneFile(FLAG_geneFile, FLAG_geneName, &geneRange);
   std::string range;
@@ -196,7 +209,6 @@ SEXP impl_readVCFToMatrixByGene(SEXP arg_fileName, SEXP arg_geneFile, SEXP arg_g
   // real working part
   return readVCF2Matrix(&vin);
 }
-
 
 SEXP readVCF2List(VCFInputFile* vin,
                   const std::set<std::string>& FLAG_vcfColumn,
@@ -389,7 +401,7 @@ SEXP readVCF2List(VCFInputFile* vin,
         it != indvMap.end();
         ++it) {
 
-    dump(it->second);
+    // dump(it->second);
     numAllocated += storeResult(it->first, it->second, ret, retListIdx);
     // Rprintf("results done\n");
     // NOTE: R internally store values into matrix by column first!
@@ -449,7 +461,13 @@ SEXP impl_readVCFToListByRange(SEXP arg_fileName, SEXP arg_range, SEXP arg_annoT
   else {
     error("Please provide a range before we can continue.\n");
   };
-
+  if (!FLAG_annoType.empty() && !vcfHasAnnotation(FLAG_fileName)) {
+    REprintf("Please use annotated VCF as input (cannot find ANNO in the INFO field);\n");
+    REprintf("Prefer using ANNO from https://github.com/zhanxw/anno  \n");
+    SEXP ans = R_NilValue;
+    return ans;
+  }
+  
   if (FLAG_annoType.size()) {
     vin.setAnnoType(FLAG_annoType.c_str());
   }
@@ -480,6 +498,13 @@ SEXP impl_readVCFToListByGene(SEXP arg_fileName, SEXP arg_geneFile, SEXP arg_gen
   extractStringArray(arg_infoTag, &FLAG_infoTag);
   extractStringArray(arg_indvTag, &FLAG_indvTag);
 
+  if (!FLAG_annoType.empty() && !vcfHasAnnotation(FLAG_fileName)) {
+    REprintf("Please use annotated VCF as input (cannot find ANNO in the INFO field);\n");
+    REprintf("Prefer using ANNO from https://github.com/zhanxw/anno  \n");
+    SEXP ans = R_NilValue;
+    return ans;
+  }
+  
   // Rprintf("vcfColumn.size() = %u\n", FLAG_vcfColumn.size());
   // Rprintf("vcfInfo.size() = %u\n", FLAG_infoTag.size());
   // Rprintf("vcfIndv.size() = %u\n", FLAG_indvTag.size());

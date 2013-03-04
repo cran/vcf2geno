@@ -1,14 +1,27 @@
+#' Check input file has tabix index
+#' 
+#' @param fileName an input file name
+#' @return TRUE if an index file with ".tbi" exists
+#' @keywords internal
+hasIndex <- function(fileName) {
+  if (file.exists(fileName)) {
+    return (TRUE)
+  } else {
+    return (FALSE)
+  }
+}
+
 #' Read a gene from VCF file and return a genotypes matrix
 #'
-#' @param fileName input VCF file (Bgzipped, with Tabix index)
+#' @param fileName an input VCF file (Bgzipped, with Tabix index)
 #' @param geneFile a text file listing all genes in refFlat format
 #' @param geneName which gene(s) to be extracted
 #' @param annoType which annotation you would like to extract
 #' @return genotype matrix
 readVCFToMatrixByGene <- function(fileName, geneFile, geneName, annoType) {
-  stopifnot(file.exists(fileName))
-  stopifnot(file.exists(geneFile))
-  
+  stopifnot(file.exists(fileName), length(fileName) == 1)
+  stopifnot(file.exists(geneFile), length(geneFile) == 1)
+
   storage.mode(fileName) <- "character"
   storage.mode(geneFile) <- "character"
   storage.mode(geneName) <- "character"
@@ -23,7 +36,7 @@ readVCFToMatrixByGene <- function(fileName, geneFile, geneName, annoType) {
 #' @param annoType which annotation you would like to extract
 #' @return genotype matrix
 readVCFToMatrixByRange <- function(fileName, range, annoType) {
-  stopifnot(file.exists(fileName))
+  stopifnot(file.exists(fileName), length(fileName) == 1, hasIndex(fileName))
   storage.mode(fileName) <- "character"
   storage.mode(range)    <- "character"
   storage.mode(annoType) <- "character"
@@ -41,8 +54,8 @@ readVCFToMatrixByRange <- function(fileName, range, annoType) {
 #' @param vcfIndv which individual tag to extract, e.g. GT, GQ...
 #' @return a list of genes, and each elements has specified vcfColumn, vcfinfo, vcfIndv
 readVCFToListByGene <- function(fileName, geneFile, geneName, annoType, vcfColumn, vcfInfo, vcfIndv) {
-  stopifnot(file.exists(fileName))
-  stopifnot(file.exists(geneFile))  
+  stopifnot(file.exists(fileName), length(fileName) == 1, hasIndex(fileName))
+  stopifnot(file.exists(geneFile), length(geneFile) == 1)
   storage.mode(fileName) <- "character"
   storage.mode(geneFile) <- "character"
   storage.mode(geneName) <- "character"
@@ -65,7 +78,7 @@ readVCFToListByGene <- function(fileName, geneFile, geneName, annoType, vcfColum
 
 
 readVCFToListByRange <- function(fileName, range, annoType, vcfColumn, vcfInfo, vcfIndv) {
-  stopifnot(file.exists(fileName))
+  stopifnot(file.exists(fileName), length(fileName) == 1, hasIndex(fileName))
   storage.mode(fileName) <- "character"
   storage.mode(range)    <- "character"
   storage.mode(annoType) <- "character"
@@ -81,11 +94,11 @@ readVCFToListByRange <- function(fileName, range, annoType, vcfColumn, vcfInfo, 
 #' @param covFiles covaraite files (vcf2ld_gene outputs)
 #' @param geneFile speicify which gene file to extract (need to be refFlat format)
 #' @param gene speicify which gene to extract
-#' @return a list of genes, and each elements contain genotype covariance within gene and associated score test statsitics. 
+#' @return a list of genes, and each elements contain genotype covariance within gene and associated score test statsitics.
 rvmeta.readDataByGene <- function(scoreTestFiles, covFiles, geneFile, gene) {
   stopifnot(file.exists(scoreTestFiles))
-  stopifnot(is.null(covFiles) || file.exists(covFiles))
-  stopifnot(file.exists(geneFile))  
+  stopifnot(is.null(covFiles) || (file.exists(covFiles) && length(covFiles) == length(scoreTestFiles)))
+  stopifnot(file.exists(geneFile), length(geneFile) == 1)
   storage.mode(scoreTestFiles) <- "character"
   storage.mode(covFiles) <- "character"
   storage.mode(geneFile) <- "character"
@@ -102,21 +115,21 @@ rvmeta.readDataByGene <- function(scoreTestFiles, covFiles, geneFile, gene) {
 #' @param scoreTestFiles score test output file (rvtests outputs)
 #' @param covFiles covaraite files (vcf2ld_gene outputs)
 #' @param ranges speicify which range to extract (e.g. 1:100-200)
-#' @return a list of variants, and each elements contain genotype covariance within gene and associated score test statsitics. 
-rvmeta.readDataByRange <- function (scoreTestFiles, covFiles, ranges) 
+#' @return a list of variants, and each elements contain genotype covariance within gene and associated score test statsitics.
+rvmeta.readDataByRange <- function (scoreTestFiles, covFiles, ranges)
 {
-    stopifnot(file.exists(scoreTestFiles))
-    stopifnot(is.null(covFiles) || file.exists(covFiles))
-    storage.mode(scoreTestFiles) <- "character"
-    storage.mode(covFiles) <- "character"
-    storage.mode(ranges) <- "character"
-    if (is.null(covFiles)) {
-      .Call("rvMetaReadDataByRange", scoreTestFiles, "", 
-            ranges, PACKAGE = "vcf2geno")
-    } else {
-      .Call("rvMetaReadDataByRange", scoreTestFiles, covFiles, 
-            ranges, PACKAGE = "vcf2geno")
-    }
+  stopifnot(file.exists(scoreTestFiles))
+  stopifnot(is.null(covFiles) || (file.exists(covFiles) && length(covFiles) == length(scoreTestFiles)))
+  storage.mode(scoreTestFiles) <- "character"
+  storage.mode(covFiles) <- "character"
+  storage.mode(ranges) <- "character"
+  if (is.null(covFiles)) {
+    .Call("rvMetaReadDataByRange", scoreTestFiles, "",
+          ranges, PACKAGE = "vcf2geno")
+  } else {
+    .Call("rvMetaReadDataByRange", scoreTestFiles, covFiles,
+          ranges, PACKAGE = "vcf2geno")
+  }
 }
 
 #' Read covariance
@@ -125,7 +138,7 @@ rvmeta.readDataByRange <- function (scoreTestFiles, covFiles, ranges)
 #' @param tabixRange a text indicating which range in the VCF file to extract. e.g. 1:100-200
 #' @return a matrix of covariance within gene
 rvmeta.readCovByRange <- function(covFile, tabixRange) {
-  stopifnot(file.exists(covFile))    
+  stopifnot(file.exists(covFile))
   storage.mode(covFile) <- "character"
   storage.mode(tabixRange) <- "character"
   .Call("readCovByRange", covFile, tabixRange, PACKAGE="vcf2geno");

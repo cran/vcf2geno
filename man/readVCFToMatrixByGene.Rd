@@ -6,7 +6,7 @@
     annoType)
 }
 \arguments{
-  \item{fileName}{input VCF file (Bgzipped, with Tabix
+  \item{fileName}{an input VCF file (Bgzipped, with Tabix
   index)}
 
   \item{geneFile}{a text file listing all genes in refFlat

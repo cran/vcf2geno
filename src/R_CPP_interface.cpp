@@ -15,7 +15,7 @@ void extractStringArray(SEXP in, std::vector<std::string>* out) {
     s = CHAR(STRING_ELT(in, i));
     if (s.size()) {
       out->push_back(s);
-      Rprintf("extractStringArray: [%d] %s\n", out->size(), s.c_str());
+      // Rprintf("extractStringArray: [%d] %s\n", out->size(), s.c_str());
     }
   }
 }

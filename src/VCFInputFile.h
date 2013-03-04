@@ -142,7 +142,10 @@ public:
     this->range = rl;
     this->setRangeMode();
   };
-
+  void mergeRange() {
+    this->range.sort();
+    this->setRangeMode();
+  }
   ///
   void reportReadError(const std::string& line) {
     if (line.size() > 50) {

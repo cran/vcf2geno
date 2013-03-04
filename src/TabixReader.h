@@ -8,7 +8,7 @@
 #include "R.h"
 class TabixReader{
 public:
-TabixReader(const std::string& fn) : inReading(false) {
+TabixReader(const std::string& fn) : inReading(false), hasIndex(false), tabixHandle(0), ti_line(0) {
     open(fn);
   };
   ~TabixReader() {
@@ -21,30 +21,35 @@ TabixReader(const std::string& fn) : inReading(false) {
       REprintf("Cannot open index file for file [ %s ]!\n", fn.c_str());
       this->hasIndex = false;
       return false;
-    } else{
-      if (ti_lazy_index_load(this->tabixHandle) != 0) {
-        // failed to open tabix index
-        REprintf("Cannot open index file for file [ %s ]!\n", fn.c_str());
-        this->hasIndex = false;
-        return false;
-      } else {
-        this->hasIndex = true;
-        return true;
-      }
     }
+    if (ti_lazy_index_load(this->tabixHandle) != 0) {
+      // failed to open tabix index
+      REprintf("Cannot open index file for file [ %s ]!\n", fn.c_str());
+      this->hasIndex = false;
+      return false;
+    }
+
+    this->hasIndex = true;
     return true;
   };
   void closeIndex(){
+    // REprintf("close index...");
+    if (!this->hasIndex) return;
+    // REprintf("close index...");
     if (this->iter) {
       ti_iter_destroy(this->iter);
       this->iter = 0;
+      // REprintf("close iter...");
     }
+    
     /* REprintf("Close index\n"); */
+    // REprintf("%x", this->tabixHandle);
     if (this->tabixHandle) {
       ti_close(this->tabixHandle);
       this->tabixHandle = 0;
+      // REprintf("close handle...");
     }
-    /* REprintf("done. Close index\n"); */
+    // REprintf("done. Close index\n");
   };
 
   bool readLine(std::string* line) {
@@ -134,6 +139,7 @@ TabixReader(const std::string& fn) : inReading(false) {
    */
   void mergeRange() {
     range.sort();
+    resetRangeIterator();
   };
   int open(const std::string& fn) {
     inReading = false;
@@ -177,7 +183,7 @@ private:
   RangeList::iterator rangeIterator;
 
   // tabix part
-  tabix_t * tabixHandle;
+  tabix_t* tabixHandle;
   ti_iter_t iter;
   const char* ti_line;
 };

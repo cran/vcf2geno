@@ -365,13 +365,13 @@ void ti_index_destroy(ti_index_t *idx)
 	int i;
 	if (idx == 0) return;
 	// destroy the name hash table
-	for (k = kh_begin(idx->tname); k != kh_end(idx->tname); ++k) {
+    for (k = kh_begin(idx->tname); k != kh_end(idx->tname); ++k) {
 		if (kh_exist(idx->tname, k))
 			free((char*)kh_key(idx->tname, k));
 	}
 	kh_destroy(s, idx->tname);
 	// destroy the binning index
-	for (i = 0; i < idx->n; ++i) {
+    for (i = 0; i < idx->n; ++i) {
 		khash_t(i) *index = idx->index[i];
 		ti_lidx_t *index2 = idx->index2 + i;
 		for (k = kh_begin(index); k != kh_end(index); ++k) {
@@ -383,8 +383,8 @@ void ti_index_destroy(ti_index_t *idx)
 	}
 	free(idx->index);
 	// destroy the linear index
-	free(idx->index2);
-	free(idx);
+    free(idx->index2);
+    free(idx);
 }
 
 /******************
