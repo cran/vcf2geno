@@ -1,3 +1,8 @@
+2013-03-12  Xiaowei Zhan  <zhanxw@fantasia.csgstat.sph.umich.edu>
+
+	* Add automatic version checking option
+	* Remove __restrict from bgzf.c for portability
+
 2013-03-04  Xiaowei Zhan  <zhanxw@fantasia.csgstat.sph.umich.edu>
 
 	* Add warning when extracting by annotation types from un-annotated files

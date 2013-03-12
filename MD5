@@ -1,7 +1,7 @@
-74b91e6f04a238672dcae7797eb1ca96 *ChangeLog
-df8e80d755de3d7c25456782fad24a32 *DESCRIPTION
-a343c9796c291f286ad8dc9de5ad61ce *NAMESPACE
-cc50110c50ed60c4b87535fb61321b95 *R/vcf2geno.R
+2795d3ac6c92700c1de70fa4ee816b07 *ChangeLog
+5ceb1c15e35fb9b50acb59c825e0b969 *DESCRIPTION
+7e412753b14b387e2f4c52a45eb5edc2 *NAMESPACE
+98f9a7e8280c55b1201addc6ef62d7e9 *R/vcf2geno.R
 ddeb76cd34e791893c0f539fdab879bb *bzip2.LICENSE
 dbe49534045bebcd393d3d0d5ccec28a *bzip2.README
 64506e9a9077e12e1ab55b15a6b17c20 *configure
@@ -70,7 +70,7 @@ c99de6988f92eec0eb978e4298303d7d *src/VCFValue.h
 ae3bbb54820e1d49fb90cbba222e973f *src/adler32.c
 aba13a3883d7d117af33a6d8fe8c1ed1 *src/bam_endian.h
 a9f135cf6c369a13d43510eaff9c983b *src/bedidx.c
-ce1c54b779c137ddb7acb51fd93f914d *src/bgzf.c
+a75f6ff6c1d77b74f3dbb01d1b54b389 *src/bgzf.c
 0922d493e4b84f246c1eb9270e88c7dd *src/bgzf.h
 da5cc4b39d85aa5306d37b505915a9a7 *src/blocksort.c
 4472015145411b5144461cc251d259ea *src/bzCompress.c

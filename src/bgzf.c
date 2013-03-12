@@ -126,7 +126,9 @@ static BGZF *bgzf_write_init(int compress_level) // compress_level==-1 for the d
 	return fp;
 }
 // get the compress level from the mode string
-static int mode2level(const char *__restrict mode)
+// remove __restrict, as __ prefix is not portable.
+// static int mode2level(const char *__restrict mode)
+static int mode2level(const char *mode)
 {
 	int i, compress_level = -1;
 	for (i = 0; mode[i]; ++i)

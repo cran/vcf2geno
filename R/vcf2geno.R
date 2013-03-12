@@ -155,3 +155,22 @@ rvmeta.readScoreByRange <- function(scoreFile, tabixRange) {
   storage.mode(tabixRange) <- "character"
   .Call("readScoreByRange", scoreFile, tabixRange, PACKAGE="vcf2geno");
 };
+
+.onAttach <- function(libname, pkgname){
+  newVersionLink = "http://zhanxw.com:8080/seqminer/version"
+  conn <- url(newVersionLink)
+  ret <- tryCatch(readLines(conn, n = 2), error = function(e) {NULL})
+  close(conn)
+
+  if (!is.null(ret) && length(ret) == 2) {
+    version <- ret[1]
+    if (utils::packageVersion("vcf2geno") < version) {
+      if (length(ret) > 1) {
+        packageStartupMessage(ret[2])
+      } else {
+        packageStartupMessage("Found new version of vcf2geno: ", ret)
+      }
+    }
+  }
+  ## packageStartupMessage("vcf2geno loaded ...")
+}
