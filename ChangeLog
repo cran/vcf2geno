@@ -1,3 +1,12 @@
+2014-01-23  Xiaowei Zhan  <zhanxw@dumbo.csgstat.sph.umich.edu>
+
+	* Fix clang compilation issue (by Prof. Ripley)
+	* Notify user to switch to seqminer
+
+2013-03-24  Xiaowei Zhan  <zhanxw@fantasia.csgstat.sph.umich.edu>
+
+	* Keep range/gene order when extracing data from meta-analysis results
+
 2013-03-12  Xiaowei Zhan  <zhanxw@fantasia.csgstat.sph.umich.edu>
 
 	* Add automatic version checking option

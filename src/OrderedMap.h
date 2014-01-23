@@ -62,13 +62,15 @@ class OrderedMap{
         return this->keyVec[idx];
     }
     const TYPE& valueAt(unsigned int idx) const {
-        if (idx >= this->size()) return false;
+        if (idx >= this->size()) {
+            log_error("Index out of bound, now quitting...");
+        }
         const KEY& k = this->keyVec[idx];
         if (this->keyTypeMap.find(k) == this->keyTypeMap.end()){
             REprintf("Cannot find KEY in valueAt()\n");
             REprintf("Critical error happening!\n"); //abort();
         } else {
-            return this->keyTypeMap.find(*k)->second;
+            return this->keyTypeMap.find(k)->second;
         }
     }
     /**

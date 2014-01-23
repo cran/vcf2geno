@@ -216,7 +216,7 @@ class CovFileFormat: public MetaFileFormat {
 void addLocationPerGene(const std::string& gene,
                         const std::string& range,
                         const std::string& fn,
-                        std::map< std::string, std::map< std::string, int> >* location) {
+                        OrderedMap< std::string, std::map< std::string, int> >* location) {
   TabixReader tr(fn);
   tr.addRange(range);
   tr.mergeRange();
@@ -267,7 +267,7 @@ void sortLocationPerGene(std::map< std::string, int>* locations) {
 #define RET_ANNO_INDEX 16
 
 SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
-                         std::map< std::string, std::string>& geneRange) {
+                         const OrderedMap< std::string, std::string>& geneRange) {
 
   int numAllocated = 0;
   SEXP ret = R_NilValue;
@@ -292,27 +292,25 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
   // store the order of the gene
   std::map< std::string, int> geneIndex;
   {
-    int i = 0;
-    for (std::map< std::string, std::string>::const_iterator iter = geneRange.begin();
-         iter != geneRange.end();
-         ++ iter) {
-      geneIndex[iter->first] = i;
-      ++i;
+    int len = geneRange.size();
+    for (int i = 0; i < len; ++i) {
+      const std::string& key = geneRange.keyAt(i);
+      geneIndex[key] = i;
     }
   }
 
+  
   // for each gene, find its all position location
-  typedef std::map< std::string, std::map< std::string, int> > GeneLocationMap;
+  typedef OrderedMap< std::string, std::map< std::string, int> > GeneLocationMap;
   GeneLocationMap geneLocationMap;
-  std::map< std::string, std::string>::const_iterator geneRangeIter;
-  for (geneRangeIter = geneRange.begin();
-       geneRangeIter != geneRange.end();
-       ++geneRangeIter) {
+  for (size_t idx = 0; idx < geneRange.size(); ++idx) {
+    const std::string& key = geneRange.keyAt(idx);
+    const std::string& value = geneRange.valueAt(idx);    
     for (int i = 0; i < nStudy; ++i) {
-      addLocationPerGene(geneRangeIter->first, geneRangeIter->second, FLAG_pvalFile[i], &geneLocationMap);
+      addLocationPerGene(key, value, FLAG_pvalFile[i], &geneLocationMap);
     }
     for (int i = 0; i < nStudy; ++i) {
-      sortLocationPerGene(& (geneLocationMap[geneRangeIter->first]));
+      sortLocationPerGene(& (geneLocationMap[key]));
     }
   };
   std::map<std::string, std::set<std::string> > posAnnotationMap;
@@ -321,7 +319,7 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
   // initial return results
   // result[gene][chrom, pos, maf...][nstudy]
   int nGene = geneLocationMap.size();
-  Rprintf("%d gene loaded to be extracted.\n", nGene);
+  Rprintf("%d gene/region to be extracted.\n", nGene);
 
   PROTECT(ret = allocVector(VECSXP, nGene));
   numAllocated ++;
@@ -329,13 +327,12 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
   PROTECT(geneNames = allocVector(STRSXP, nGene));
   numAllocated ++;
   {
-    int i = 0;
-    for ( GeneLocationMap::iterator iter = geneLocationMap.begin();
-          iter != geneLocationMap.end() ; ++iter){
+    for (int i = 0; i < geneLocationMap.size(); ++i) {
+    // for ( GeneLocationMap::iterator iter = geneLocationMap.begin();
+    //       iter != geneLocationMap.end() ; ++iter){
       // Rprintf("assign gene name: %s\n", iter->first.c_str());
-      SET_STRING_ELT(geneNames, i, mkChar(iter->first.c_str()));
-      geneIndex[iter->first.c_str()] = i;
-      ++i;
+      SET_STRING_ELT(geneNames, i, mkChar(geneLocationMap.keyAt(i).c_str()));
+      geneIndex[geneLocationMap.keyAt(i).c_str()] = i;
     }
   }
   setAttrib(ret, R_NamesSymbol, geneNames);
@@ -360,9 +357,11 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
   names.push_back("pos");
   names.push_back("anno");
 
-  GeneLocationMap::iterator iter = geneLocationMap.begin();
+  // GeneLocationMap::iterator iter = geneLocationMap.begin();
   for ( int i = 0;
-        iter != geneLocationMap.end() ; ++iter, ++i){
+        i < geneLocationMap.size();
+        ++i) {
+    //        iter != geneLocationMap.end() ; ++iter, ++i){
     SEXP s = VECTOR_ELT(ret, i);
     numAllocated += createList(names.size(), &s); // a list with 10 elements: ref, alt, n, maf, stat, direction, p, cov, pos, anno
     numAllocated += setListNames(names, &s);
@@ -386,7 +385,7 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
     numAllocated += createList(nStudy, &pos);
     numAllocated += createList(nStudy, &anno);
 
-    int npos = iter->second.size();
+    int npos = geneLocationMap.valueAt(i).size();
     // REprintf("npos= %d\n", npos);
     for (int j = 0; j < nStudy; ++j) {
       SEXP t;
@@ -535,15 +534,13 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
     }
 
     // loop per gene
+    for (size_t idx = 0; idx < geneRange.size(); ++idx) {
+      const std::string& gene = geneRange.keyAt(idx);
+      const std::string& range = geneRange.valueAt(idx);    
 
-    std::map< std::string, std::string>::const_iterator geneRangeIter;
-    for (geneRangeIter =  geneRange.begin();
-         geneRangeIter != geneRange.end();
-         ++geneRangeIter) {
-      const std::string& gene = geneRangeIter->first;
-      const std::string& range = geneRangeIter->second;
-      if (geneLocationMap.find(gene) == geneLocationMap.end()) continue;
-      const std::map< std::string, int>& location2idx = geneLocationMap.find(gene)->second;
+      // if (geneLocationMap.find(gene) == geneLocationMap.end()) continue;
+      if (!geneLocationMap.find(gene) ) continue;
+      const std::map< std::string, int>& location2idx = geneLocationMap[gene];
 
       std::set<std::string> processedSite ;
       TabixReader tr(FLAG_pvalFile[study]);
@@ -671,11 +668,13 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
     }
   } // end loop by study
   // fill in position and annotation
-  iter = geneLocationMap.begin();
+  // iter = geneLocationMap.begin();
   for ( int i = 0;
-        iter != geneLocationMap.end() ; ++iter, ++i){
-    std::map<std::string, int>& loc2idx = iter->second;
-    SEXP u = VECTOR_ELT(ret, geneIndex[iter->first]);
+        i < geneLocationMap.size();
+        ++i) {
+    // iter != geneLocationMap.end() ; ++iter, ++i){
+    const std::map<std::string, int>& loc2idx = geneLocationMap.valueAt(i);
+    SEXP u = VECTOR_ELT(ret, geneIndex[geneLocationMap.keyAt(i)]);
     SEXP pos = VECTOR_ELT(u, RET_POS_INDEX);
     SEXP anno = VECTOR_ELT(u, RET_ANNO_INDEX);
 
@@ -729,14 +728,13 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
       }
 
       // loop per gene
-      std::map< std::string, std::string>::const_iterator geneRangeIter;
-      for (geneRangeIter =  geneRange.begin();
-           geneRangeIter != geneRange.end();
-           ++geneRangeIter) {
-        const std::string& gene = geneRangeIter->first;
-        const std::string& range = geneRangeIter->second;
-        if (geneLocationMap.find(gene) == geneLocationMap.end()) continue;
-        const std::map< std::string, int>& location2idx = geneLocationMap.find(gene)->second;
+      for (size_t idx = 0; idx < geneRange.size(); ++idx) {
+        const std::string& gene = geneRange.keyAt(idx);
+        const std::string& range = geneRange.valueAt(idx);    
+
+        // if (geneLocationMap.find(gene) == geneLocationMap.end()) continue;
+        if (!geneLocationMap.find(gene)) continue;
+        const std::map< std::string, int>& location2idx = geneLocationMap[gene];
 
         std::set<std::string> processedSite ;
         
@@ -796,11 +794,15 @@ SEXP impl_rvMetaReadData(SEXP arg_pvalFile, SEXP arg_covFile,
 } // impl_rvMetaReadData
 
 SEXP impl_rvMetaReadDataByRange(SEXP arg_pvalFile, SEXP arg_covFile, SEXP arg_range) {
-  std::string FLAG_range;
-  extractString(arg_range, &FLAG_range);
+  std::vector<std::string> FLAG_range;
+  extractStringArray(arg_range, &FLAG_range);
 
-  std::map< std::string, std::string> geneRange ;
-  geneRange[FLAG_range] = FLAG_range;
+  OrderedMap< std::string, std::string> geneRange ;
+  char key[100] = "";
+  for (size_t i = 0; i < FLAG_range.size(); ++i) {
+    sprintf(key, "Range%d", (int) (i + 1));
+    geneRange[key] = FLAG_range[i];  
+  }
 
   return impl_rvMetaReadData(arg_pvalFile, arg_covFile, geneRange);
 } // impl_rvMetaReadDataByRange
@@ -812,7 +814,7 @@ SEXP impl_rvMetaReadDataByGene(SEXP arg_pvalFile, SEXP arg_covFile, SEXP arg_gen
   extractString(arg_geneFile, &FLAG_geneFile);
   extractStringSet(arg_gene, &FLAG_gene);
 
-  std::map< std::string, std::string> geneRange ;
+  OrderedMap< std::string, std::string> geneRange ;
   loadGeneFile(FLAG_geneFile, FLAG_gene, &geneRange);
 
   return impl_rvMetaReadData(arg_pvalFile, arg_covFile, geneRange);

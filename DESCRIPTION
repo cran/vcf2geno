@@ -1,17 +1,17 @@
 Package: vcf2geno
 Type: Package
 Title: Efficiently Read Variant Call Format (VCF) into R
-Version: 2.0
-Date: 2013-3-12
+Version: 2.3
+Date: 2014-1-23
 Author: Xiaowei Zhan <zhanxw@gmail.com> and Dajiang Liu
-        <dajiang.liu@gmail.com>, with contributions of Jean-loup Gailly
-        <jloup@gzip.org> and Mark Adler
-        <madler@alumni.caltech.edu>(they wrote zlib and provide license
-        so we include zlib source code), Julian Seward
-        <jseward@bzip.org> (this author wrote bzip2 and with BSD
-        license we include bzip2 source codes) and Heng Li
-        <lh3@live.co.uk> (this author wrote tabix and with MIT license
-        we include tabix source codes).
+    <dajiang.liu@gmail.com>, with contributions of Jean-loup Gailly
+    <jloup@gzip.org> and Mark Adler
+    <madler@alumni.caltech.edu>(they wrote zlib and provide license
+    so we include zlib source code), Julian Seward
+    <jseward@bzip.org> (this author wrote bzip2 and with BSD
+    license we include bzip2 source codes) and Heng Li
+    <lh3@live.co.uk> (this author wrote tabix and with MIT license
+    we include tabix source codes).
 Maintainer: Xiaowei Zhan <zhanxw@gmail.com>
 Description: A handy package to read VCF file
 Copyright: We have used the following software and made minimal
@@ -26,10 +26,10 @@ Copyright: We have used the following software and made minimal
         <lh3@live.co.uk> (MIT license). We removed standard IO related
         functions, e.g. printf, fprintf ; also changed its un-safe
         pointer arithmetics.
-License: GPL
+License: GPL | file LICENSE
 URL: http://zhanxw.com/vcf2geno
 Collate: 'vcf2geno.R'
-Packaged: 2013-03-14 20:27:03 UTC; zhanxw
+Packaged: 2014-01-23 19:10:07 UTC; zhanxw
 Repository: CRAN
-Date/Publication: 2013-03-15 07:41:29
+Date/Publication: 2014-01-23 23:06:57
 NeedsCompilation: yes
